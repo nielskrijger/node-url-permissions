@@ -77,8 +77,8 @@ Even when using URL-Based Permissions you may find yourself using other models a
 /files/DfDXj4knrEvetvcA:read,write
 ```
 
-Say you want to share this file with anonymous users. To model this in your system's permission model you might create a group or role "anonymous" and add the permission above to that group/role. Allowing anyone to add permissions to the group "anonymous" will quickly grow that group's permission list to millions of records creating performance and manageability issues.
+Say you want to share this file with anonymous users. To model this in your system you might create a group or role "anonymous" and add the permission `/files/DfDXj4knrEvetvcA:read` to that group/role. However, allowing anyone to add permissions to the group "anonymous" will quickly grow that group's permission list to millions of records creating performance and manageability issues.
 
-Alternatively you might create a separate resource url `/public/DfDXj4knrEvetvcA` acting as a symlink to `/files/DfDXj4knrEvetvcA` and grant group/role "anonymous" the permission `/public:read`. This way you define a permission only once for a single group. While this works great, you might not want to create symlinks like that.
+Alternatively, you might create an additional resource url `/public/DfDXj4knrEvetvcA` acting as a symlink to `/files/DfDXj4knrEvetvcA`. This way by granting a group/role "anonymous" the permission `/public:read` allows anyone to access your publicly shared files. While this works great, you might not want to create symlinks like that.
 
-More simply, you might just add an additional attribute `public=true|false` to each database record and check programmatically whether a user is granted access or not. If you were to force yourself using URL Permissions you might still create a group "anonymous" and grant the permissions `/files?public=true:read`.
+Ignoring URL-Based Permissions entirely, you might just add an additional attribute `public=true|false` to each database file metarecord and check programmatically whether a user is granted access or not (ADAC). Using URL Permissions in this scenario you might create a group "anonymous" and grant it the permission `/files?public=true:read`.
