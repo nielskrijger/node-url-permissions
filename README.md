@@ -48,17 +48,19 @@ Using URL-Based Permissions this example may be expressed in permissions such as
 
 DAC allows fine-grained access control and enables users to manage permissions themselves rather than a restricted set of privileged administrators. In our newspaper example it is trivial for *writer1* to grant read access to a draft article to *writer2* using DAC.
 
-Compared to RBAC managing permissions for each and every resource instance quickly grows a huge permission database and possibly technical performance issues. Usually groups or roles are used to manage permissions for multiple users at the but even so an ACL database grows to millions of records quickly.
+Compared to RBAC managing permissions for each and every resource instance quickly grows a huge unmanageable permission database and possibly technical performance issues. Often groups or roles are used to improve manageablility when using DAC.
 
-Not only is DAC difficult to manage, it cannot be expressed in authorization grants efficiently (for example in OAuth scopes).
+Not only is DAC difficult to manage, it cannot be expressed in authorization grants effectively (for example in OAuth scopes).
 
 ### Attribute-Based Access Control (ABAC)
 
-[Attribute-Based Access Control (ABAC)](https://en.wikipedia.org/wiki/Attribute-Based_Access_Control) uses policies to define a set of rules that must apply to get access to the resource. For example `IF user has role "editor" OR user is resource owner THEN allow read/write access`.
+[Attribute-Based Access Control (ABAC)](https://en.wikipedia.org/wiki/Attribute-Based_Access_Control) uses policies to define a set of rules that must apply to get access to a resource. For example `IF user has role "editor" OR user is resource owner THEN allow read/write access`.
 
 In advanced systems such policies are described in a custom [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) allowing great flexibility.
 
 ABAC's flexibility comes at a price of high complexity to the point of frustration (yes [AWS IAM Policies](http://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html), I'm looking at you...). Developing your own ABAC DSL can be a huge undertaking.
+
+Many systems require some advanced authorization logic not captured in their main authorization model but express this in code rather than policies. 
 
 ### The real world
 
