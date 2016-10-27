@@ -79,13 +79,13 @@ The URL-Based Permission model is an attempt to find a middle-ground in these th
 As a result when using URL-Based Permissions you may find yourself using other models as well. For example, imagine storing a file in a cloud service. The URL permission may look like:
 
 ```
-/files/DfDXj4knrEvetvcA:read,write
+/files/logo.png:read,write
 ```
 
-Say you want to share this file with anonymous users. To model this in your system you might create a group "anonymous" and add the permission `/files/DfDXj4knrEvetvcA:read` to that group. However, allowing anyone to add permissions to the group "anonymous" will quickly grow that group's permission list to millions of records creating performance and manageability issues.
+Say you want to share this file with anonymous users. To model this in your system you might create a group "anonymous" and add the permission `/files/logo.png:read` to that group. However, allowing anyone to add permissions to the group "anonymous" will quickly grow that group's permission list to millions of records creating performance and manageability issues.
 
-Alternatively, you might create an additional resource url `/public/DfDXj4knrEvetvcA` acting as a symlink to `/files/DfDXj4knrEvetvcA`. This way by granting a group "anonymous" the permission `/public:read` allows anyone to access your publicly shared files. Revoking that access is as simple as removing the symlink. While this works, you might not want to create symlinks like that.
+Alternatively, you might create an additional resource url `/public/logo.png` acting as a symlink to `/files/logo.png`. This way by granting a group "anonymous" the permission `/public:read` allows anyone to access your publicly shared files. Revoking that access is as simple as removing the symlink. While this works, you might not want to create symlinks like that.
 
-A more simple approach is to add additional attribute `public=true|false` to each database file metarecord and check programmatically whether a user is granted access or not. Using URL Permissions in this scenario you might create a group "anonymous" and grant it the permission `/files?public=true:read`.
+A more simple approach is to add an attribute `public=true|false` to each file record and check programmatically whether a user is granted access or not. To express this in an URL Permission you can use `/files?public=true:read`.
 
-While URL Permissions are flexible, it is likely you will find yourself in a situation where other access control models are a better fit.
+While URL Permissions are flexible, it is likely you will find yourself in a situation where other access control models are easier to implement and maintain.
