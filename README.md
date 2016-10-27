@@ -60,17 +60,17 @@ In advanced systems such policies are described in a custom [DSL](https://en.wik
 
 ABAC's flexibility comes at a price of high complexity to the point of frustration (yes [AWS IAM Policies](http://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html), I'm looking at you...). Developing your own ABAC DSL can be a huge undertaking.
 
-Many systems require some advanced authorization logic not captured in their main authorization model but express this in code rather than policies. 
+Many systems require some advanced authorization logic not captured in their main authorization model but express this in code rather than policies.
 
 ### The real world
 
-In most systems a combination of various methods are used to authorize users. In our example of a newspaper website a pragmatic approach would be to:
+In most web applications a combination of various methods are used to authorize users. In our `newspaper.com` example a pragmatic approach would be to:
 
-- use roles (`editor`, `writer`, ...) to easily centrally administer common permissions of users (RBAC).
-- allow `writers` to grant extra permissions to other `writers` for the purpose of reviewing drafts (DAC).
-- not allow any public users to read draft articles (ABAC).
+- use roles (`editor`, `writer`, ...) to easily centrally administer common permissions of users (RBAC),
+- allow `writers` to grant extra permissions to other `writers` for the purpose of reviewing drafts (DAC),
+- allow public users to access articles with status `published` only (ABAC-like).
 
-The URL-Based Permission model is an attempt to find a middle-ground of these three models. It however is not a best of breed, most use cases are better served by other access control models. URL-Based Permissions are:
+The URL-Based Permission model is an attempt to find a middle-ground in these three models. It however is not a best of breed, most use cases are better served by other access control models. URL-Based Permissions are:
 
 - not as manageable as roles;
 - not as fine-grained as an ACL;
