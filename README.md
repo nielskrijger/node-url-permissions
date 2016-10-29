@@ -6,11 +6,11 @@ This library facilitates formatting permissions for users or groups in the follo
 <url>?<attributes>:<actions>
 ```
 
-An URL Grant consists of three components:
+An URL Permission consists of three components:
 
-1. **Url**: identifies which resource the permission applies to. Can be an absolute pathname (starting with `/`) or include the entire fully-qualified url.
-2. **Attributes**: optional attributes that apply additional restrictions to the permission. For example, a permission `/articles:read` grants read access to all articles whereas `/articles?author=user-1:read` grants read access only to articles whose author is `user-1`.
-3. **Actions**: the actions allowed on the resource. You can either specify these as a comma-separated set of strings (e.g. `create,read,update`) or use abbreviations in a single string (`cru`).
+1. **Url**: identifies which resource the permission applies to. Can be an absolute pathname (starting with `/`) or an entire url with domain name and url scheme. Urls can include wildcards `*` and `**` to specify permission over a range of articles.
+2. **Attributes**: optional query parameters that apply additional restrictions to the permission. For example, a permission `/articles:read` grants read access to all articles whereas `/articles?author=user-1:read` grants read access only to articles whose author is `user-1`.
+3. **Actions**: the actions allowed on the resource. You can either specify these as a comma-separated set of actionnames or their abbreviations (e.g. `create,read,update` vs `cru`).
 
 Some examples:
 
@@ -35,11 +35,13 @@ https://example.com/collection/:resource_id/sub_collection/:sub_resource2
 
 For example `https://example.com/articles/article-1/comments/comment-1`.
 
-Mapping REST API's to url-permissions is fairly trivial. You can can both use absolute pathnames or include the the entire domain name and scheme as well, whichever you prefer.
+Mapping REST API's to url-permissions is usually fairly trivial. You can can both use absolute pathnames or include the the entire domain name and scheme as well, whichever you prefer.
+
+Note the subtle difference between the permissions `/articles:read` and `/articles/*:read`. Strictly speaking the former grants permission to the articles collection allowing you read and search all articles, while the latter only allows you to read articles but not access the collection directly.
 
 ### Attributes
 
-Attributes are domain-specific properties that restrict the permission. They are similar to how you'd filter a REST resource collection, for example:
+Attributes are domain-specific properties that restrict the permission. They are similar to how you'd filter a resource collection, for example:
 
 
 ```
@@ -52,7 +54,19 @@ That URL quite obviously returns only newspaper articles written by `user-1`. UR
 /articles?author=user-1:all
 ```
 
-This permission grants all CRUD operations on articles written by author 1.
+Grants access to all CRUD operations on articles written by author `user-1`.
+
+```
+/articles?author=user-1&status=published:read
+```
+
+Grants read access to published articles of `user-1`.
+
+```
+/articles/*/comments?article.status=published:read
+```
+
+Grants read access to comments of all published articles (but not read the articles themselves).
 
 ### Actions
 
