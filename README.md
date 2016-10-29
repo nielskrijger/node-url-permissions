@@ -33,22 +33,25 @@ URL-Based Permissions are ideal for REST API's. REST URL's are structured as fol
 https://example.com/collection/:resource_id/sub_collection/:sub_resource2
 ```
 
-For example `https://example.com/articles/article-1/comments/comment-1`.
+For example;
 
-Mapping REST API's to url-permissions is usually fairly trivial. You can can both use absolute pathnames or include the the entire domain name and scheme as well, whichever you prefer.
+```
+https://example.com/articles/article-1/comments/comment-1
+```
 
-Note the subtle difference between the permissions `/articles:read` and `/articles/*:read`. Strictly speaking the former grants permission to the articles collection allowing you read and search all articles, while the latter only allows you to read articles but not access the collection directly.
+Both absolute pathnames and full url's are allowed, whichever you prefer.
+
+Note the subtle difference between `/articles:read` and `/articles/*:read`. Strictly speaking the former grants permission to the articles collection allowing you to read and search all articles, while the latter only allows you to read articles but not access the collection directly.
 
 ### Attributes
 
 Attributes are domain-specific properties that restrict the permission. They are similar to how you'd filter a resource collection, for example:
 
-
 ```
 https://newspaper.com/articles?author=user-1
 ```
 
-That URL quite obviously returns only newspaper articles written by `user-1`. URL Permission attributes are used in the same way:
+That URL only returns newspaper articles written by `user-1`. URL Permission attributes are used in the same way:
 
 ```
 /articles?author=user-1:all
@@ -70,9 +73,9 @@ Grants read access to comments of all published articles (but not read the artic
 
 ### Actions
 
-Actions specify what type of operations are allowed on a resource.
+Actions specify which operations are allowed on a resource.
 
-You can fully customize all action names, bitmasks and what they represent. The following is used as default:
+You can fully customize all action names, abbreviations and what they represent. The following is used as default:
 
 Name      | Alias | Description
 ----------|-------|-----------------
@@ -88,6 +91,7 @@ In addition to the actions above, the following aliases exist:
 Name      | Alias for | Description
 ----------|-----------|-------------------
 `all`     |    `crud` | Allows user to perform the most common actions on a resource apart from changing user or group permissions.
+`manager` |   `crudm` | Allows user to perform CRUD operations and set permissions of users without `manager` or `owner` permissions.
 `owner`   |   `cruds` | Allows all possible actions on resource.
 
 ## Functions
