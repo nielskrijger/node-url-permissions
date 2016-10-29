@@ -1,24 +1,139 @@
-# URL Based Permissions
+# URL-Based Permissions
 
-This library facilitates formatting permissions for users, groups or roles in the following way:
+This library facilitates formatting permissions for users or groups in the following way:
 
 ```
-<url>?<attributes>:<action1>,<action2>
+<url>?<attributes>:<actions>
 ```
+
+An URL Grant consists of three components:
+
+1. **Url**: identifies which resource the permission applies to. Can be an absolute pathname (starting with `/`) or include the entire fully-qualified url.
+2. **Attributes**: optional attributes that apply additional restrictions to the permission. For example, a permission `/articles:read` grants read access to all articles whereas `/articles?author=user-1:read` grants read access only to articles whose author is `user-1`.
+3. **Actions**: the actions allowed on the resource. You can either specify these as a comma-separated set of strings (e.g. `create,read,update`) or use abbreviations in a single string (`cru`).
 
 Some examples:
 
 - `/groups/my-group:read` - grants read access to the group `/groups/my-group`.
 - `/articles?author=user1:read,update` - grants read and update access to the articles whose author is `user1`.
-- `/**:owner` - grants access to all resources, e.g. an administrator.
+- `/**:all` - grants access to all actions for all resources, e.g. an administrator.
 - `https://newspaper.com/articles?author=user1:read,update` - grants read and update access to all newspaper articles whose author is `user1`.
-
 
 URL Based Permissions are intended for web services that:
 
 1. have a REST API of [maturity level 1](http://martinfowler.com/articles/richardsonMaturityModel.html);
 2. require permissions to be expressed in a succinct way;
 3. require resource owners to grant permissions to other users or groups.
+
+### URL
+
+URL-Based Permissions are ideal for REST API's. REST URL's are structured as follows:
+
+```
+https://example.com/collection/:resource_id/sub_collection/:sub_resource2
+```
+
+For example `https://example.com/articles/article-1/comments/comment-1`.
+
+Mapping REST API's to url-permissions is fairly trivial. You can can both use absolute pathnames or include the the entire domain name and scheme as well, whichever you prefer.
+
+### Attributes
+
+Attributes are domain-specific properties that restrict the permission. They are similar to how you'd filter a REST resource collection, for example:
+
+
+```
+https://newspaper.com/articles?author=user-1
+```
+
+That URL quite obviously returns only newspaper articles written by `user-1`. URL Permission attributes are used in the same way:
+
+```
+/articles?author=user-1:all
+```
+
+This permission grants all CRUD operations on articles written by author 1.
+
+### Actions
+
+Actions specify what type of operations are allowed on a resource.
+
+You can fully customize all action names, bitmasks and what they represent. The following is used as default:
+
+Name      | Alias | Description
+----------|-------|-----------------
+`read`    |   `r` | View resource.
+`create`  |   `c` | Create resource.
+`update`  |   `u` | Update resource.
+`delete`  |   `d` | Delete resource.
+`manage`  |   `m` | Set permissions of users or groups without `manage` or `super` permission for the applicable resource.
+`super`   |   `s` | Set permissions of all users and groups for the applicable resource.
+
+In addition to the actions above, the following aliases exist:
+
+Name      | Alias for | Description
+----------|-----------|-------------------
+`all`     |    `crud` | Allows user to perform the most common actions on a resource apart from changing user or group permissions.
+`owner`   |   `cruds` | Allows all possible actions on resource.
+
+## Functions
+
+### verify(permission, ...searchPermission)
+
+Returns `true` if at least one `searchPermission` matches `permission`.
+
+Param            | Type      | Description
+-----------------|-----------|-------------------
+permission       | string    | The required permission to pass authorization.
+searchPermission | ...string | The permission strings to check against `permission`. At least one `searchPermission` must match `permission`, otherwise returns false.
+
+```js
+import { verify } from 'url-permissions';
+
+// Basic examples
+verify('/articles:read', '/articles:read'); // true
+verify('/articles:read,update', '/articles:read'); // false
+verify('/articles:read,update', '/articles:all'); // true
+verify('/articles:read', '/articles:read', '/articles:update'); // true
+verify('/articles:all', '/articles:read'); // false
+
+// Attribute examples
+verify('/articles?author=user-1:read', '/articles:read'); // Returns true
+verify('/articles?author=user-1&status=draft:read', '/articles?author=user-1:read'); // Returns true
+verify('/articles:read', '/articles?author=user-1:read'); // Returns false
+
+// Wildcards * and **
+verify('/art*les:read', '/articles:read'); // Returns true
+verify('/articles/*:read', '/articles/article-1:read'); // Returns true
+verify('/articles/*:read', '/articles?author=user-2:read'); // Returns false
+verify('/articles:read', '/articles/*:read'); // Returns false
+verify('/articles/*:read', '/articles/article-1/comments:read'); // Returns false
+verify('/articles/**:read', '/articles/article-1/comments:read'); // Returns true
+```
+
+### validate(permission)
+
+Checks if permission string is syntactically correct.
+
+TODO
+
+### config(flagMap)
+
+```js
+import permissions from 'url-permission';
+
+permissions.config({
+  actions: {
+    read: 1,
+    create: 2,
+    update: 4,
+    delete: 8,
+    all: 15,
+    manager: 16,
+    owner: 32,
+  },
+});
+```
 
 ## Compared to other access control models
 
