@@ -15,7 +15,7 @@ An URL Permission consists of three components:
 Some examples:
 
 - `/groups/my-group:read` - grants read access to the group `/groups/my-group`.
-- `/articles?author=user1:read,update` - grants read and update access to the articles whose author is `user1`.
+- `/articles?author={userId}:read,update` - grants read and update access to the articles whose author is `user1`.
 - `/**:owner` - grants access to all available actions for all resources, e.g. an administrator.
 - `https://newspaper.com/articles?author=user1:read,update` - grants read and update access to all newspaper articles whose author is `user1`.
 
@@ -39,19 +39,28 @@ For example;
 https://example.com/articles/article-1/comments/comment-1
 ```
 
-An URL permission that allowed the comment above to be read looks like:
+Some URL permissions that allow a user to read that resource instance are:
 
 ```
-https://example.com/articles/article-1/comments/comment-1:read
 /articles:read
 /articles/*:read
+/articles/*/comments/*:read
+https://example.com/articles/article-1/comments/comment-1:read
 ```
 
 Note the subtle difference between `/articles:read` and `/articles/*:read`. Strictly speaking the former grants permission to the articles collection allowing you to read and search all articles, while the latter only allows you to read articles but not access the collection directly.
 
+Replacement variables formatted as `{var}` can be used to apply user-specific attributes in the url. For example:
+
+```
+/user/{userId}/emails:read
+```
+
+... which grants read access to a user's emails address. Note the `userId` replacement variable must be defined at runtime when evaluating the permission.
+
 ### Attributes
 
-Attributes are domain-specific properties that restrict the permission. They are similar to how you'd filter a resource collection, for example:
+Attributes are domain-specific properties that restrict a permission. They are similar to how you'd filter a resource collection, for example:
 
 ```
 https://newspaper.com/articles?author=user-1
@@ -109,7 +118,8 @@ Returns `true` if at least one `searchPermission` matches `permission`.
 Param            | Type      | Description
 -----------------|-----------|-------------------
 permission       | string    | The required permission.
-searchPermission | ...string | One or more permissions to check. At least one `searchPermission` must match the constraints specified in `permission`, otherwise returns false.
+searchPermission | ...string | One or more permissions to check against. `verify` returns `true` if least one `searchPermission` matches the constraints specified in `permission`, otherwise returns `false`.
+replacementVars  | object    | Object containing replacement variables for `permission` and `searchPermission` parameters.
 
 ```js
 import { verify } from 'url-permissions';
@@ -133,6 +143,12 @@ verify('/articles/*:read', '/articles?author=user-2:read'); // Returns false
 verify('/articles:read', '/articles/*:read'); // Returns false
 verify('/articles/*:read', '/articles/article-1/comments:read'); // Returns false
 verify('/articles/**:read', '/articles/article-1/comments:read'); // Returns true
+
+// Replacement variables
+verify('/users/{userId}:read', '/users/{userId}:read', { userId: 'test' }); // Returns true
+verify('/users/{userId}:read', '/users/{userId}:read'); // Throws error
+verify('/articles?author={userId}:read', '/articles:read', { userId: 'test' }); // Returns true
+verify('/articles:read', '/articles?author={userId}:read', { userId: 'test' }); // Returns false
 ```
 
 ### validate(permission)
@@ -163,6 +179,21 @@ permissions.config({
 });
 ```
 
+### parse(permission[, object])
+
+This method takes an URL Permission string, parses it, and returns an URL object.
+
+```js
+// Example `parse('/articles/*?author={author}:all', { author: 'user-1' })`
+{
+  url: '/articles/gd235lkg91'
+  actions: ['read', 'create', 'update', 'delete'],
+  attributes: {
+    author: 'user-1',
+  }
+}
+```
+
 ## Compared to other access control models
 
 ### Role-Based Access Control (RBAC)
@@ -175,11 +206,11 @@ permissions.config({
 
 The main advantage of RBAC is its simplicity, regardless of the number of users there are only a few well-defined roles and granting permissions is simply assigning users their correct roles. Many business applications fit this model well as business processes often have clearly defined roles and responsibilities.
 
-Drawbacks of RBAC are its coarseness and inflexibility. Imagine *writer1* asking *writer2* to review a draft of its article. Drafts are only viewable for authors and editors, there is no clear-cut way to grant `writer2` access to writer1's article using simply roles.
+Drawbacks of RBAC are its coarseness and inflexibility. Imagine *writer1* asking *writer2* to review a draft of its article. Drafts are only viewable for authors and editors, there is no clear-cut way to grant `writer2` access to writer1's article using simply roles. Creating a new role for the specific purpose of reading and updating a specific article defeats the whole idea of roles being easy to assign and manage.
 
-Using URL-Based Permissions this example may be expressed in permissions such as:
+Using URL-Based Permissions in this example the following permissions may be defined:
 
-- **writer**: `/articles?author=d851lg01:owner`
+- **writer**: `/articles?author={userId}:owner`
 - **editor**: `/articles:all`
 - **graphics_artist**: `/assets:all`
 - **writer** granted access to review specific article: `/articles/51gkga94:read,update`
@@ -235,4 +266,4 @@ Alternatively, you might create an additional resource url `/public/logo.png` ac
 
 Yet another alternative is to add an attribute `public=true|false` to each file record and check programmatically whether a user is granted access or not. To express this in an URL Permission you can use `/files?public=true:read`.
 
-While URL Permissions are flexible, it is likely you will find yourself in a situation where other access control models are easier to implement and maintain.ll
+While URL Permissions are flexible, it is likely you will find yourself in a situation where other access control models are easier to implement and maintain.
