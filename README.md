@@ -21,7 +21,7 @@ Some examples:
 
 URL Based Permissions are intended for web services that:
 
-1. have a REST API of [maturity level 1](http://martinfowler.com/articles/richardsonMaturityModel.html);
+1. have a REST API of [maturity level 1](http://martinfowler.com/articles/richardsonMaturityModel.html) or higher;
 2. require permissions to be expressed in a succinct way;
 3. require resource owners to grant permissions to other users or groups.
 
@@ -39,7 +39,13 @@ For example;
 https://example.com/articles/article-1/comments/comment-1
 ```
 
-Both absolute pathnames and full url's are allowed, whichever you prefer.
+An URL permission that allowed the comment above to be read looks like:
+
+```
+https://example.com/articles/article-1/comments/comment-1:read
+/articles:read
+/articles/*:read
+```
 
 Note the subtle difference between `/articles:read` and `/articles/*:read`. Strictly speaking the former grants permission to the articles collection allowing you to read and search all articles, while the latter only allows you to read articles but not access the collection directly.
 
@@ -51,13 +57,13 @@ Attributes are domain-specific properties that restrict the permission. They are
 https://newspaper.com/articles?author=user-1
 ```
 
-That URL only returns newspaper articles written by `user-1`. URL Permission attributes are used in the same way:
+... returns newspaper articles written by `user-1`. URL Permission attributes are used in the same way:
 
 ```
 /articles?author=user-1:all
 ```
 
-Grants access to all CRUD operations on articles written by author `user-1`.
+... which grants access to all CRUD operations on articles written by author `user-1`.
 
 ```
 /articles?author=user-1&status=published:read
@@ -77,14 +83,14 @@ Actions specify which operations are allowed on a resource.
 
 You can fully customize all action names, abbreviations and what they represent. The following is used as default:
 
-Name      | Alias | Description
-----------|-------|-----------------
-`read`    |   `r` | View resource.
-`create`  |   `c` | Create resource.
-`update`  |   `u` | Update resource.
-`delete`  |   `d` | Delete resource.
-`manage`  |   `m` | Set permissions of users or groups without `manage` or `super` permission for the applicable resource.
-`super`   |   `s` | Set permissions of all users and groups for the applicable resource.
+Name      | Abbreviation | Description
+----------|--------------|-----------------
+`read`    |          `r` | View resource.
+`create`  |          `c` | Create resource.
+`update`  |          `u` | Update resource.
+`delete`  |          `d` | Delete resource.
+`manage`  |          `m` | Set permissions of users or groups without `manage` or `super` permission for the applicable resource.
+`super`   |          `s` | Set permissions of all users and groups for the applicable resource.
 
 In addition to the actions above, the following aliases exist:
 
@@ -203,26 +209,30 @@ Many systems require some advanced authorization logic not captured in their mai
 
 In most web applications a combination of various methods are used to authorize users. In our `newspaper.com` example a pragmatic approach would be to:
 
-- use roles (`editor`, `writer`, ...) to easily centrally administer common permissions of users (RBAC),
-- allow `writers` to grant extra permissions to other `writers` for the purpose of reviewing drafts (DAC),
+- use roles (`editor`, `writer`, ...) to easily centrally administer common permissions of users (RBAC-like),
+- allow `writers` to grant extra permissions to other `writers` for the purpose of reviewing drafts (DAC-like),
 - allow public users to access articles with status `published` only (ABAC-like).
 
-The URL-Based Permission model is an attempt to find a middle-ground in these three models. It however is not a best of breed, most use cases are better served by other access control models. URL-Based Permissions are:
+URL-Based Permissions focusses primarily on the representation of a permission, not what you'd like to do with them. Compared to the other models URL-Based Permissions are:
 
-- not as manageable as roles;
+- not as simple or manageable as roles;
 - not as fine-grained as an ACL;
-- not as flexible as policies.
+- not as flexible or advanced as policies.
 
-As a result when using URL-Based Permissions you may find yourself using other models as well. For example, imagine storing a file in a cloud service. The URL permission may look like:
+As a result when using URL-Based Permissions you may find yourself using other models as well. However, for most REST web services the model should fit well.
+
+### Real example
+
+Imagine storing a file in a cloud service. By default the upload is private and an URL permission granting access to it may look like:
 
 ```
-/files/logo.png:read,write
+/files/logo.png:all
 ```
 
-Say you want to share this file with anonymous users. To model this in your system you might create a group "anonymous" and add the permission `/files/logo.png:read` to that group. However, allowing anyone to add permissions to the group "anonymous" will quickly grow that group's permission list to millions of records creating performance and manageability issues.
+Say you want to grant read-access to this file for anonymous users. To model this in your system you might create a group "anonymous" and add the permission `/files/logo.png:read` to that group. However, allowing anyone to add permissions to the group "anonymous" will quickly grow that group's permission list to millions of records creating performance and manageability issues.
 
-Alternatively, you might create an additional resource url `/public/logo.png` acting as a symlink to `/files/logo.png`. This way by granting a group "anonymous" the permission `/public:read` allows anyone to access your publicly shared files. Revoking that access is as simple as removing the symlink. While this works, you might not want to create symlinks like that.
+Alternatively, you might create an additional resource url `/public/logo.png` acting as a symlink to `/files/logo.png`. This way by granting a group "anonymous" the permission `/public/*:read` allows anyone to access your publicly shared files. Revoking that access is as simple as removing the symlink. While this works, you might not want to create symlinks like that.
 
-A more simple approach is to add an attribute `public=true|false` to each file record and check programmatically whether a user is granted access or not. To express this in an URL Permission you can use `/files?public=true:read`.
+Yet another alternative is to add an attribute `public=true|false` to each file record and check programmatically whether a user is granted access or not. To express this in an URL Permission you can use `/files?public=true:read`.
 
-While URL Permissions are flexible, it is likely you will find yourself in a situation where other access control models are easier to implement and maintain.
+While URL Permissions are flexible, it is likely you will find yourself in a situation where other access control models are easier to implement and maintain.ll
