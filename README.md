@@ -16,7 +16,7 @@ Some examples:
 
 - `/groups/my-group:read` - grants read access to the group `/groups/my-group`.
 - `/articles?author=user1:read,update` - grants read and update access to the articles whose author is `user1`.
-- `/**:all` - grants access to all actions for all resources, e.g. an administrator.
+- `/**:owner` - grants access to all available actions for all resources, e.g. an administrator.
 - `https://newspaper.com/articles?author=user1:read,update` - grants read and update access to all newspaper articles whose author is `user1`.
 
 URL Based Permissions are intended for web services that:
@@ -102,8 +102,8 @@ Returns `true` if at least one `searchPermission` matches `permission`.
 
 Param            | Type      | Description
 -----------------|-----------|-------------------
-permission       | string    | The required permission to pass authorization.
-searchPermission | ...string | The permission strings to check against `permission`. At least one `searchPermission` must match `permission`, otherwise returns false.
+permission       | string    | The required permission.
+searchPermission | ...string | One or more permissions to check. At least one `searchPermission` must match the constraints specified in `permission`, otherwise returns false.
 
 ```js
 import { verify } from 'url-permissions';
@@ -135,20 +135,24 @@ Checks if permission string is syntactically correct.
 
 TODO
 
-### config(flagMap)
+### config(options)
 
 ```js
 import permissions from 'url-permission';
 
 permissions.config({
   actions: {
-    read: 1,
-    create: 2,
-    update: 4,
-    delete: 8,
-    all: 15,
-    manager: 16,
-    owner: 32,
+    read: 'r',
+    create: 'c',
+    update: 'u',
+    delete: 'd',
+    super: 's',
+    manage: 'm',
+  },
+  alias: {
+    all: 'crud',
+    manager: 'crudm',
+    owner: 'cruds',
   },
 });
 ```
