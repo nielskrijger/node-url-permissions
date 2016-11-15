@@ -1,23 +1,36 @@
 {
   "name": "@nielskrijger/node-url-permissions",
   "version": "0.0.1",
-  "description": "Node.js library to validate URL-Based Permissions",
+  "description": "Node.js library to validate URL Permissions",
   "main": "src/index.js",
   "author": "Niels Krijger <niels@kryger.nl>",
   "license": "ISC",
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/nielskrijger/node-url-permissions.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nielskrijger/node-url-permissions.git"
   },
   "devDependencies": {
-    "babel-cli": "^6.10.1",
-    "babel-core": "^6.10.4",
-    "babel-preset-es2015": "^6.9.0",
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-register": "^6.18.0",
     "chai": "^3.5.0",
+    "eslint": "^3.9.1",
+    "eslint-config-airbnb": "^12.0.0",
+    "eslint-plugin-import": "^1.16.0",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.5.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-eslint": "^3.0.1",
+    "gulp-sourcemaps": "^2.2.0",
     "mocha": "^2.5.3"
   },
   "scripts": {
     "test": "mocha",
-    "prepublish": "npm test"
+    "prepublish": "gulp build && npm test"
+  },
+  "dependencies": {
+    "lodash": "^4.16.6"
   }
 }

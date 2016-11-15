@@ -1,12 +1,12 @@
-# URL-Based Permissions
+# Node URL-Based Permissions
 
-This library facilitates formatting permissions for users or groups in the following way:
+This Node.js library facilitates formatting permissions in for users or groups in the following way:
 
 ```
 <url>?<attributes>:<actions>
 ```
 
-Read more about the URL Permission format at [url-permissions](https://github.com/nielskrijger/url-permissions).
+Read more about the URL Permission format [here](https://github.com/nielskrijger/url-permissions).
 
 ## Functions
 
@@ -18,7 +18,6 @@ Param            | Type      | Description
 -----------------|-----------|-------------------
 permission       | string    | The required permission.
 searchPermission | ...string | One or more permissions to check against. `verify` returns `true` if least one `searchPermission` matches the constraints specified in `permission`, otherwise returns `false`.
-replacementVars  | object    | Object containing replacement variables for `permission` and `searchPermission` parameters.
 
 ```js
 import { verify } from 'url-permissions';
@@ -29,34 +28,27 @@ verify('/articles:read,update', '/articles:read'); // false
 verify('/articles:read,update', '/articles:all'); // true
 verify('/articles:read', '/articles:read', '/articles:update'); // true
 verify('/articles:all', '/articles:read'); // false
+verify('/articles/article-1:read', '/articles:read'); // true
+verify('/articles:read', '/articles/article-1:read'); // false
 
 // Attribute examples
-verify('/articles?author=user-1:read', '/articles:read'); // Returns true
-verify('/articles?author=user-1&status=draft:read', '/articles?author=user-1:read'); // Returns true
-verify('/articles:read', '/articles?author=user-1:read'); // Returns false
+verify('/articles?author=user-1:read', '/articles:read'); // true
+verify('/articles?author=user-1&status=draft:read', '/articles?author=user-1:read'); // true
+verify('/articles:read', '/articles?author=user-1:read'); // false
 
 // Wildcards * and **
-verify('/art*les:read', '/articles:read'); // Returns true
-verify('/articles/*:read', '/articles/article-1:read'); // Returns true
-verify('/articles/*:read', '/articles?author=user-2:read'); // Returns false
-verify('/articles:read', '/articles/*:read'); // Returns false
-verify('/articles/*:read', '/articles/article-1/comments:read'); // Returns false
-verify('/articles/**:read', '/articles/article-1/comments:read'); // Returns true
-
-// Replacement variables
-verify('/users/{userId}:read', '/users/{userId}:read', { userId: 'test' }); // Returns true
-verify('/users/{userId}:read', '/users/{userId}:read'); // Throws error
-verify('/articles?author={userId}:read', '/articles:read', { userId: 'test' }); // Returns true
-verify('/articles:read', '/articles?author={userId}:read', { userId: 'test' }); // Returns false
+verify('/articles:read', '/art*cles:read'); // true
+verify('/articles/article-1:read', '/articles/*:read'); // true
+verify('/articles?author=user-2:read', '/articles/*:read'); // false
+verify('/articles?author=user-2:read', '/articles/*:read'); // false
+verify('/articles:read', '/articles/*:read'); // false
+verify('/articles/*:read', '/articles/article-1/comments:read'); // false
+verify('/articles/**:read', '/articles/article-1/comments:read'); // true
 ```
 
-### validate(permission)
-
-Checks if permission string is syntactically correct.
-
-TODO
-
 ### config(options)
+
+Example with default config:
 
 ```js
 import permissions from 'url-permission';
@@ -70,7 +62,7 @@ permissions.config({
     super: 's',
     manage: 'm',
   },
-  alias: {
+  aliases: {
     all: 'crud',
     manager: 'crudm',
     owner: 'cruds',
@@ -78,7 +70,7 @@ permissions.config({
 });
 ```
 
-### parse(permission[, object])
+### parse(permission, [object])
 
 This method takes an URL Permission string, parses it, and returns an URL object.
 
