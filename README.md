@@ -82,7 +82,7 @@ permissions.config({
 
 ### parse(permission, [object])
 
-This method takes an URL Permission string, parses it, and returns an URL object.
+Takes an URL Permission string and returns an object with permission details.
 
 ```js
 // Example `parse('/articles/*?author={author}:all', { author: 'user-1' })`
