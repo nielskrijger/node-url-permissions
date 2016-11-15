@@ -1,12 +1,18 @@
 # Node URL-Based Permissions
 
-This Node.js library facilitates formatting permissions in for users or groups in the following way:
+This Node.js library facilitates formatting permissions for users or groups in the following way:
 
 ```
 <url>?<attributes>:<actions>
 ```
 
-Read more about the URL Permission format [here](https://github.com/nielskrijger/url-permissions).
+URL Permissions are intended to provide authorization for web services that:
+
+1. have a REST API;
+2. require permissions to be expressed in a succinct way;
+3. have complex authorization requirements.
+
+Read more about the [URL Permission format](https://github.com/nielskrijger/url-permissions).
 
 ## Functions
 
@@ -27,7 +33,6 @@ verify('/articles:read', '/articles:read'); // true
 verify('/articles:read,update', '/articles:read'); // false
 verify('/articles:read,update', '/articles:all'); // true
 verify('/articles:read', '/articles:read', '/articles:update'); // true
-verify('/articles:all', '/articles:read'); // false
 verify('/articles/article-1:read', '/articles:read'); // true
 verify('/articles:read', '/articles/article-1:read'); // false
 
@@ -44,6 +49,11 @@ verify('/articles?author=user-2:read', '/articles/*:read'); // false
 verify('/articles:read', '/articles/*:read'); // false
 verify('/articles/*:read', '/articles/article-1/comments:read'); // false
 verify('/articles/**:read', '/articles/article-1/comments:read'); // true
+
+// Abbreviations and aliases
+verify('/articles:crud', '/articles:all'); // true
+verify('/articles:all', '/articles:read'); // false
+verify('/articles:read', '/articles:all'); // false
 ```
 
 ### config(options)
