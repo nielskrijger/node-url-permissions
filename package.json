@@ -1,8 +1,8 @@
 {
-  "name": "@nielskrijger/node-url-permissions",
-  "version": "0.0.2",
-  "description": "Node.js library to validate URL Permissions",
-  "main": "src/index.js",
+  "name": "url-permissions",
+  "version": "0.0.3",
+  "description": "Node.js library for URL Permissions",
+  "main": "lib/index.js",
   "author": "Niels Krijger <niels@kryger.nl>",
   "license": "ISC",
   "repository": {
