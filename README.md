@@ -1,9 +1,9 @@
-# Node URL-Based Permissions
+# Node URL Permission
 
 This Node.js library facilitates formatting permissions for users or groups in the following way:
 
 ```
-<url>?<attributes>:<actions>
+<path>?<parameters>:<privileges>
 ```
 
 URL Permissions are intended to provide authorization for web services that:
@@ -14,83 +14,194 @@ URL Permissions are intended to provide authorization for web services that:
 
 Read more about the [URL Permission format](https://github.com/nielskrijger/url-permissions).
 
-## Functions
+## matches(searchPermissions)
 
-### verify(permission, ...searchPermission)
-
-Returns `true` if at least one `searchPermission` matches `permission`.
-
-Param            | Type      | Description
------------------|-----------|-------------------
-permission       | string    | The required permission.
-searchPermission | ...string | One or more permissions to check against. `verify` returns `true` if least one `searchPermission` matches the constraints specified in `permission`, otherwise returns `false`.
+Returns `true` if at least one `searchPermission` matches the constraints specified in `permission`, otherwise returns `false`.
 
 ```js
-import { verify } from 'url-permissions';
+import permission from 'url-permissions';
 
 // Basic examples
-verify('/articles:read', '/articles:read'); // true
-verify('/articles:read,update', '/articles:read'); // false
-verify('/articles:read,update', '/articles:all'); // true
-verify('/articles:read', '/articles:read', '/articles:update'); // true
-verify('/articles/article-1:read', '/articles:read'); // true
-verify('/articles:read', '/articles/article-1:read'); // false
+permission('/articles:read').matches('/articles:read'); // true
+permission('/articles:read,update').matches('/articles:read'); // false
+permission('/articles:read,update').matches('/articles:all'); // true
+permission('/articles:read').matches(['/articles:read', '/articles:update']); // true
+permission('/articles/article-1:read').matches('/articles:read'); // false
+permission('/articles:read').matches('/articles/article-1:read'); // false
 
-// Attribute examples
-verify('/articles?author=user-1:read', '/articles:read'); // true
-verify('/articles?author=user-1&status=draft:read', '/articles?author=user-1:read'); // true
-verify('/articles:read', '/articles?author=user-1:read'); // false
+// Query parameter examples
+permission('/articles?author=user-1:read').matches('/articles:read'); // true
+permission('/articles?author=user-1&status=draft:read').matches('/articles?author=user-1:read'); // true
+permission('/articles:read').matches('/articles?author=user-1:read'); // false
 
 // Wildcards * and **
-verify('/articles:read', '/art*cles:read'); // true
-verify('/articles/article-1:read', '/articles/*:read'); // true
-verify('/articles?author=user-2:read', '/articles/*:read'); // false
-verify('/articles?author=user-2:read', '/articles/*:read'); // false
-verify('/articles:read', '/articles/*:read'); // false
-verify('/articles/*:read', '/articles/article-1/comments:read'); // false
-verify('/articles/**:read', '/articles/article-1/comments:read'); // true
+permission('/articles:read').matches('/art*cles:read'); // true
+permission('/articles/article-1:read').matches('/articles/*:read'); // true
+permission('/articles?author=user-2:read').matches('/articles/*:read'); // false
+permission('/articles?author=user-2:read').matches('/articles/*:read'); // false
+permission('/articles:read').matches('/articles/*:read'); // false
+permission('/articles/*:read').matches('/articles/article-1/comments:read'); // false
+permission('/articles/**:read').matches('/articles/article-1/comments:read'); // true
 
-// Abbreviations and aliases
-verify('/articles:crud', '/articles:all'); // true
-verify('/articles:all', '/articles:read'); // false
-verify('/articles:read', '/articles:all'); // false
+// Privilege aliases
+permission('/articles:crud').matches('/articles:all'); // true
+permission('/articles:all').matches('/articles:read'); // false
+permission('/articles:read').matches('/articles:all'); // false
 ```
 
-### config(options)
+## path([ path ])
 
-Example with default config:
+Gets or sets the permission path.
 
 ```js
-import permissions from 'url-permission';
+const perm = permission('/articles:r');
 
-permissions.config({
-  actions: {
-    read: 'r',
-    create: 'c',
-    update: 'u',
-    delete: 'd',
-    super: 's',
-    manage: 'm',
+perm.path(); // "/articles"
+perm.path('/users');
+perm.path(); // "/users"
+```
+
+## parameters([ parameters ])
+
+Gets or sets the permission parameters.
+
+```js
+const perm = permission('/articles?attr1=test:r');
+
+perm.parameters(); // { attr1: 'test' }
+perm.parameters({ attr1: 'test2', attr2: 'test3' });
+perm.parameters(); // { attr1: 'test2', attr2: 'test3' }
+```
+
+## privileges([ privileges ])
+
+Gets or sets the permission privileges.
+
+`privileges` can be either a string or an array of privileges. Privileges are identified either by a one-character identifier, a privilege name or an alias.
+
+```js
+const perm = permission('/articles?attr1=test:r');
+
+perm.privileges(); // ['r']
+perm.privileges('all,m');
+perm.privileges(); // ['c', 'r', 'u', 'd', 'm']
+perm.privileges(['all', 'm', 'super']);
+perm.privileges(); // ['c', 'r', 'u', 'd', 'm', 's']
+```
+
+## grantPrivileges()
+
+Gets the privileges that allow granting permissions.
+
+```js
+const perm = permission('/articles:read,manage,super');
+
+perm.grantPrivileges(); // ['m', 's']
+```
+
+## mayGrant(newPermission [, granteePermissions])
+
+Returns `true` if permission allows granting `newPermission` to grantee.
+
+In the grant process we distinguish two roles:
+
+- *grantor*: the person granting or revoking a permission.
+- *grantee*: the person receiving or losing a permission.
+
+To grant a permission the grantor must have "manage" or "super" privileges. The "manage" privilege allows granting permissions to users without either "manage" or "super" privilege. The "super" privilege allows granting permissions to anyone (including revoking other "super" privileges). Specify `granteePermissions` for the grantee's permissions.
+
+The grantor/grantee privileges can be customized using `permission.config()`.
+
+```js
+import permission from 'url-permissions';
+
+permission('/articles:manage').mayGrant('/articles:read', []); // true
+permission('/articles:manage').mayGrant('/articles:read', ['/articles:delete']); // true
+permission('/articles:manage').mayGrant('/articles:read', ['/articles:manage']); // false
+permission('/articles:manage').mayGrant('/articles:read', ['/articles:manage']); // false
+permission('/articles:manage').mayGrant('/articles:read', ['/unrelated:super']); // true
+
+permission('/articles:super').mayGrant('/articles:read', ['/articles:manage']); // true
+permission('/articles:super').mayGrant('/articles:read', ['/articles:manage', '/different:read']); // true
+permission('/articles:super').mayGrant('/articles/article-1:read', ['/articles:manage']); // true
+permission('/articles:super').mayGrant('/articles/article-1:read', ['/articles:super']); // true
+```
+
+## mayRevoke(newPermission [, granteePermissions])
+
+An alias of `mayGrant(...)`.
+
+## permission.config(options)
+
+Changes global config options. Changing global config doesn't affect existing instances.
+
+```js
+import permission from 'url-permissions';
+
+permission.config({
+  privileges: {
+    c: 'create',
+    r: 'read',
+    u: 'update',
+    d: 'delete',
+    s: 'super',
+    m: 'manage',
   },
   aliases: {
-    all: 'crud',
-    manager: 'crudm',
-    owner: 'cruds',
+    all: ['c', 'r', 'u', 'd'],
+    manager: ['c', 'r', 'u', 'd', 'm'],
+    owner: ['c', 'r', 'u', 'd', 's'],
+  },
+  grantPrivileges: {
+    manage: ['c', 'r', 'u', 'd'],
+    super: ['c', 'r', 'u', 'd', 's', 'm'],
   },
 });
 ```
 
-### parse(permission, [object])
+### grantPrivileges
 
-Takes an URL Permission string and returns an object with permission details.
+`grantPrivileges` must be an object of key-value pairs where each key is a one-character privilege identifier and each value an array of privileges it is allowed to grant.
+
+Anyone with grant privileges is allowed to grant its privileges to grantees without any grant privileges. However, if a grantee does have grant privileges its grant privileges must be covered by those of the grantor.
+
+Example:
 
 ```js
-// Example `parse('/articles/*?author={author}:all', { author: 'user-1' })`
-{
-  url: '/articles/gd235lkg91'
-  actions: ['read', 'create', 'update', 'delete'],
-  attributes: {
-    author: 'user-1',
-  }
-}
+import permission from 'url-permissions';
+
+permission.config({
+  grantPrivileges: {
+    x: ['a'],
+    y: ['a', 'x'],
+    z: ['a', 'z'],
+  },
+});
+
+permission('/articles:x').mayGrant('/articles:a'); // true
+permission('/articles:x').mayGrant('/articles:a', ['/articles:x']); // false
+permission('/articles:y').mayGrant('/articles:a', ['/articles:x']); // true
+permission('/articles:y').mayGrant('/articles:a', ['/articles:y']); // false
+permission('/articles:z').mayGrant('/articles:a', ['/articles:z']); // true
+```
+
+Notice the last example where `z` may grant a permission to a grantee with `z`, whereas an `y` may not grant the same permission to another `y`. We'll leave it to you to figure out why.
+
+## toObject()
+
+Returns an object representation of an URL permission containing three
+properties: `url`, `attributes` and `actions`.
+
+```js
+import permission from 'url-permissions';
+
+permission('/articles/*?author=user-1,user-2&flag=true:all').toObject()
+// {
+//   path: '/articles/*',
+//   parameters: {
+//     author: ['user-1', 'user-2'],
+//     flag: ['true'],
+//   },
+//   privileges: ['r', 'c', 'u', 'd'],
+// }
 ```

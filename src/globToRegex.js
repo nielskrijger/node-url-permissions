@@ -27,7 +27,7 @@ export default (pattern) => {
       case '\\':
         result += `\\${char}`; // Escape reserved regex character
         break;
-      case '*':
+      case '*': {
         // A globstar is `abc/**/xyz`, `abc/**`, `**/abc` but not `/a**/`.
         // To determine if it is a ** rather than *, consume all consecutive "*"
         // and find the chars directly before and after '**'
@@ -45,15 +45,11 @@ export default (pattern) => {
           result += '[^/]*';
         }
         break;
+      }
       default:
         result += char;
     }
   }
 
-  // Allow any characters after the url to match
-  if (!pattern.endsWith('*')) {
-    result += (result.endsWith('/')) ? '(?:.*)?' : '(?:/.*)?';
-  }
-
-  return new RegExp('^' + result + '$');
+  return new RegExp(`^${result}$`);
 };

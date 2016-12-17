@@ -2,6 +2,8 @@
   "parser": "babel-eslint",
   "extends": "airbnb",
   "rules": {
-    "id-length": [0]
+    "id-length": 0,
+    "no-underscore-dangle": 0,
+    "class-methods-use-this": 0
   }
 }
