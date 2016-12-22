@@ -198,7 +198,7 @@ import permission from 'url-permissions';
 permission('/articles/*?author=user-1,user-2&flag=true:all').toObject()
 // {
 //   path: '/articles/*',
-//   parameters: {
+//   attributes: {
 //     author: ['user-1', 'user-2'],
 //     flag: ['true'],
 //   },
