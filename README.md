@@ -133,7 +133,7 @@ An alias of `mayGrant(...)`.
 
 ## permission.config(options)
 
-Changes global config options. Changing global config doesn't affect existing instances.
+a static method to change global config options. Changing global config doesn't affect existing instances.
 
 ```js
 import permission from 'url-permissions';
