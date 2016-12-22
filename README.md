@@ -205,3 +205,14 @@ permission('/articles/*?author=user-1,user-2&flag=true:all').toObject()
 //   privileges: ['r', 'c', 'u', 'd'],
 // }
 ```
+
+## validate()
+
+Checks if url permission is valid.
+
+```js
+permission.validate('/articles?author=1,2:all,m'); // true
+permission.validate('/articles?author=1,2'); // false, no privileges
+permission.validate('/articles:unknown'); // false, unknown privilege/alias
+permission.validate('?author=user-1:c'); // false, no path
+```
