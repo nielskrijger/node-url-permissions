@@ -92,6 +92,10 @@ export default class URLPermission {
    * ```
    */
   _parse(permission) {
+    if (!_.isString(permission)) {
+      throw new Error('Permission must be a string');
+    }
+
     const result = {
       path: null,
       parameters: null,

@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## unreleased
+### Changed
+- URL Permission constructor throws error when input is not a string.
+
 ## [0.1.0]
 ### Added
 - `validate()` method

@@ -7,6 +7,11 @@ beforeEach(() => {
 });
 
 describe('permission.constructor()', () => {
+  it('should throw error when URL permission is not a string', () => {
+    expect((() => permission(false)))
+      .to.throw('Permission must be a string');
+  });
+
   it('should throw error when URL permission does not have privileges', () => {
     expect((() => permission('/articles/article-1')))
       .to.throw('Permission must contain at least 1 privilege delimited by ":"');
