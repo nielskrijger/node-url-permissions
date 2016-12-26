@@ -146,9 +146,9 @@ describe('matches()', () => {
   it('should match parameters', () => {
     expect(permission('/articles?author=user-1:r').matches('/articles:r')).to.equal(true);
     expect(permission('/articles?author=user-1&status=draft:r').matches('/articles?author=user-1:r')).to.equal(true);
-    expect(permission('/articles?author=user-1:r').matches('/articles?author=user-1&status=draft:r')).to.equal(false);
+    expect(permission('/articles?author=user-1:r').matches('/articles?author=user-1&status=draft:r')).to.equal(true);
     expect(permission('/articles:r').matches('/articles?author=*:r')).to.equal(true);
-    expect(permission('/articles:r').matches('/articles?author=user-1:r')).to.equal(false);
+    expect(permission('/articles:r').matches('/articles?author=user-1:r')).to.equal(true);
     expect(permission('/articles?author=*:r').matches('/articles?author=user-1:r')).to.equal(false);
     expect(permission('/articles?author=user-1,user-2:r').matches('/articles?author=user-1:r')).to.equal(true);
     expect(permission('/articles?author=user-1:r').matches('/articles?author=user-1,user-2:r')).to.equal(true);
@@ -173,10 +173,20 @@ describe('matches()', () => {
 });
 
 describe('mayGrant()', () => {
-  it('should allow standard grants', () => {
+  it('should allow basic grants', () => {
     expect(permission('/articles:s').mayGrant('/articles:r')).to.equal(true);
+    expect(permission('/articles:owner').mayGrant('/articles:crud')).to.equal(true);
     expect(permission('/articles:s').mayGrant('/articles:r', ['/articles:d', '/articles:r'])).to.equal(true);
     expect(permission('/articles:m').mayGrant('/articles:r', ['/unrelated:s'])).to.equal(true);
+  });
+
+  it('should allow granting attributes', () => {
+    expect(permission('/articles:s').mayGrant('/articles?author=user-1:r')).to.equal(true);
+    expect(permission('/articles?author=user-1:s').mayGrant('/articles?author=user-1&foo=bar:r')).to.equal(true);
+  });
+
+  it('should not allow grant when permission does match parameters', () => {
+    expect(permission('/articles?author=1:s').mayGrant('/articles?author=2:r')).to.equal(false);
   });
 
   it('should not allow grant when permission does not have grant privileges', () => {
@@ -185,10 +195,6 @@ describe('mayGrant()', () => {
 
   it('should not allow grant when permission does match url path', () => {
     expect(permission('/articles:s').mayGrant('/articles/1:r')).to.equal(false);
-  });
-
-  it('should not allow grant when permission does match parameters', () => {
-    expect(permission('/articles?author=1:s').mayGrant('/articles?author=2:r')).to.equal(false);
   });
 
   it('should not allow grant when permission has lesser or equal grant privileges', () => {

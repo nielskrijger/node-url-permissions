@@ -193,22 +193,18 @@ export default class URLPermission {
     // If user has no parameters it means he is granted all possible parameters
     if (!parameters) return true;
 
-    // eslint-disable-next-line no-restricted-syntax
-    for (const key in parameters) {
-      // If required parameter does not exist then user parameters must contain
-      // a wildcard.
+    return _.every(Object.keys(parameters), (key) => {
+
+      // If parameter does not exist it is fine
       if (!this.parameters() || !this.parameters()[key]) {
-        return parameters[key].includes('*');
+        return true;
       }
 
-      // If any user parameter is not covered by required parameters then
-      // return false.
-      const isCovered = _.some(parameters[key], (userAttr) => {
+      // If parameter exists, check if param is included
+      return _.some(parameters[key], (userAttr) => {
         return this.parameters()[key].includes(userAttr);
       });
-      if (!isCovered) return false;
-    }
-    return true;
+    });
   }
 
   /**
