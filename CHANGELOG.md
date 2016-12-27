@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2016-12-27
+### Changed
+- `mayGrant()` now allows granting basic privileges (crud) to anyone.
+- `mayRevoke()` is no longer an alias of `mayGrant()` and does not allow revoking basic privileges (crud) from anyone with a “manage” or “super” privilege
+
 ## [0.1.1] - 2016-12-26
 ### Changed
 - URL Permission constructor throws error when input is not a string.
