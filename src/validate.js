@@ -29,7 +29,7 @@ function validatePrivileges(privilegeString) {
 
       // If not alias or privilege name the value must be a combination of
       // privilege identifiers
-      for (let i = 0; i < privilege.length; i++) {
+      for (let i = 0; i < privilege.length; i += 1) {
         if (!privilegeIdentifiers.includes(privilege.charAt(i))) {
           return false;
         }

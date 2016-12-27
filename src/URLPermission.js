@@ -161,10 +161,11 @@ export default class URLPermission {
    * Parses URL Permission query string.
    */
   _parseParameters(parameterString) {
-    if (parameterString.startsWith('?')) {
-      parameterString = parameterString.substring(1);
+    let paramString = parameterString;
+    if (paramString.startsWith('?')) {
+      paramString = paramString.substring(1);
     }
-    const pieces = parameterString.split('&');
+    const pieces = paramString.split('&');
     const result = {};
     for (const piece of pieces) {
       const [key, value] = piece.split('=');
@@ -194,16 +195,13 @@ export default class URLPermission {
     if (!parameters) return true;
 
     return _.every(Object.keys(parameters), (key) => {
-
       // If parameter does not exist it is fine
       if (!this.parameters() || !this.parameters()[key]) {
         return true;
       }
 
       // If parameter exists, check if param is included
-      return _.some(parameters[key], (userAttr) => {
-        return this.parameters()[key].includes(userAttr);
-      });
+      return _.some(parameters[key], e => this.parameters()[key].includes(e));
     });
   }
 
@@ -254,51 +252,52 @@ export default class URLPermission {
    * Returns `true` if permission allows granting `permission` to grantee.
    */
   mayGrant(permission, granteePermissions = []) {
-    // Find privileges that would allow this permission grant permissions
-    const myGrants = this.grantPrivileges();
-    if (myGrants.length === 0) {
-      return false; // No granting privilege found
-    }
-
-    // New permission url must be covered by url and parameters
     const newPermission = new URLPermission(permission);
-    if (!this.matchUrl(newPermission)) {
-      return false;
-    }
+    if (this.grantPrivileges().length === 0 || !this.matchUrl(newPermission)) return false;
+
+    // If all new privileges are non grants allow any grantor to add them
+    if (newPermission.grantPrivileges().length === 0) return true;
 
     // All other grantPrivileges must be covered by our grantPrivileges
-    // const granteePerms = granteePermissions;
-    const applicableGranteeGrants = granteePermissions
+    return this._areLesserPrivileges(newPermission.grantPrivileges(), granteePermissions);
+  }
+
+  /**
+   * Returns `true` if permission allows revoking `permission` from grantee.
+   */
+  mayRevoke(permission, granteePermissions = []) {
+    const newPermission = new URLPermission(permission);
+    if (this.grantPrivileges().length === 0 || !this.matchUrl(newPermission)) return false;
+
+    // All other grantPrivileges must be covered by our grantPrivileges
+    return this._areLesserPrivileges(newPermission.grantPrivileges(), granteePermissions);
+  }
+
+  /**
+   * Returns `true` when none of `granteePermissions` privileges are grant
+   * privileges that are higher up in hierarchy.
+   */
+  _areLesserPrivileges(grantPrivileges, granteePermissions) {
+    const allGrantPrivs = granteePermissions
       .map(e => new URLPermission(e))
-      .filter(perm => this.matchUrl(perm))
-      .map(e => e.grantPrivileges());
+      .filter(e => this.matchUrl(e))
+      .map(e => e.grantPrivileges())
+      .reduce((a, b) => a.concat(b), [])
+      .concat(grantPrivileges);
 
-    const otherGrants = _.chain(newPermission.grantPrivileges())
-      .concat(applicableGranteeGrants)
-      .compact()
-      .flatten()
-      .value();
-
-    if (otherGrants.length > 0) {
-      const allowedGrants = _.chain(this._config.grantPrivileges)
-        .pick(myGrants)
+    if (allGrantPrivs.length > 0) {
+      const allowedGrantPrivs = _.chain(this._config.grantPrivileges)
+        .pick(this.grantPrivileges())
         .values()
         .flatten()
         .value();
 
-      if (_.difference(otherGrants, allowedGrants).length > 0) {
+      if (_.difference(allGrantPrivs, allowedGrantPrivs).length > 0) {
         return false;
       }
     }
 
     return true;
-  }
-
-  /**
-   * An alias of `mayGrant()`.
-   */
-  mayRevoke(...args) {
-    return this.mayGrant(...args);
   }
 
   /**

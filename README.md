@@ -108,7 +108,7 @@ In the grant process we distinguish two roles:
 - *grantor*: the person granting or revoking a permission.
 - *grantee*: the person receiving or losing a permission.
 
-To grant a permission the grantor must have "manage" or "super" privileges. The "manage" privilege allows granting permissions to users without either "manage" or "super" privilege. The "super" privilege allows granting permissions to anyone (including revoking other "super" privileges). Specify `granteePermissions` for the grantee's permissions.
+To grant a permission the grantor must have "manage" or "super" privileges. Both privileges allow granting all other privileges to anyone else. The "manage" does not allow granting a "manage" or "super" privilege. The "super" privilege allows granting permissions to anyone.
 
 The grantor/grantee privileges can be customized using `permission.config()`.
 
@@ -117,19 +117,30 @@ import permission from 'url-permissions';
 
 permission('/articles:manage').mayGrant('/articles:read', []); // true
 permission('/articles:manage').mayGrant('/articles:read', ['/articles:delete']); // true
-permission('/articles:manage').mayGrant('/articles:read', ['/articles:manage']); // false
-permission('/articles:manage').mayGrant('/articles:read', ['/articles:manage']); // false
+permission('/articles:manage').mayGrant('/articles:read', ['/articles:super']); // true
+permission('/articles:manage').mayGrant('/articles:manage', ['/articles:manage']); // false
 permission('/articles:manage').mayGrant('/articles:read', ['/unrelated:super']); // true
 
-permission('/articles:super').mayGrant('/articles:read', ['/articles:manage']); // true
-permission('/articles:super').mayGrant('/articles:read', ['/articles:manage', '/different:read']); // true
 permission('/articles:super').mayGrant('/articles/article-1:read', ['/articles:manage']); // true
 permission('/articles:super').mayGrant('/articles/article-1:read', ['/articles:super']); // true
 ```
 
-## mayRevoke(newPermission [, granteePermissions])
+## mayRevoke(permission [, granteePermissions])
 
-An alias of `mayGrant(...)`.
+Returns `true` if permission allows revoking `permission` to grantee.
+
+Its behaviour is similar to that of `mayGrant()` with the exception a "manage" privilege does not allow revoking any basic privilege ("crud") from anyone with a "manage" or "super" privilege.
+
+```js
+import permission from 'url-permissions';
+
+permission('/articles:manage').mayRevoke('/articles:read', []); // true
+permission('/articles:manage').mayRevoke('/articles:read', ['/articles:super']); // false
+permission('/articles:manage').mayRevoke('/articles:manage', ['/articles:manage']); // false
+
+permission('/articles:super').mayRevoke('/articles/article-1:read', ['/articles:manage']); // true
+permission('/articles:super').mayRevoke('/articles/article-1:read', ['/articles:super']); // true
+```
 
 ## permission.config(options)
 

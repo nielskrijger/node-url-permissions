@@ -131,6 +131,7 @@ describe('grantPrivileges()', () => {
 describe('matches()', () => {
   it('should match basic permissions', () => {
     expect(permission('/articles:r').matches('/articles:read')).to.equal(true);
+    expect(permission('/articles:r').matches('/articles:read', [])).to.equal(true);
     expect(permission('/articles:read,update').matches('/articles:r')).to.equal(false);
     expect(permission('/articles:read,update').matches('/articles:r,update')).to.equal(true);
     expect(permission('/articles:read,update').matches('/articles:r,all')).to.equal(true);
@@ -180,44 +181,61 @@ describe('mayGrant()', () => {
     expect(permission('/articles:m').mayGrant('/articles:r', ['/unrelated:s'])).to.equal(true);
   });
 
-  it('should allow granting attributes', () => {
+  it('should allow granting with parameters', () => {
     expect(permission('/articles:s').mayGrant('/articles?author=user-1:r')).to.equal(true);
     expect(permission('/articles?author=user-1:s').mayGrant('/articles?author=user-1&foo=bar:r')).to.equal(true);
-  });
-
-  it('should not allow grant when permission does match parameters', () => {
-    expect(permission('/articles?author=1:s').mayGrant('/articles?author=2:r')).to.equal(false);
-  });
-
-  it('should not allow grant when permission does not have grant privileges', () => {
-    expect(permission('/articles:r').mayGrant('/articles:r')).to.equal(false);
-  });
-
-  it('should not allow grant when permission does match url path', () => {
-    expect(permission('/articles:s').mayGrant('/articles/1:r')).to.equal(false);
-  });
-
-  it('should not allow grant when permission has lesser or equal grant privileges', () => {
-    expect(permission('/articles:cmr').mayGrant('/articles:uds')).to.equal(false);
-    expect(permission('/articles:cmr').mayGrant('/articles:r', ['/articles:uds'])).to.equal(false);
-    expect(permission('/articles:m').mayGrant('/articles:m')).to.equal(false);
-    expect(permission('/articles:m').mayGrant('/articles:r', ['/articles:m'])).to.equal(false);
   });
 
   it('should allow grant when grant privilege can grant itself', () => {
     expect(permission('/articles:s').mayGrant('/articles:scrud')).to.equal(true);
   });
 
-  it('should not allow grant if user permission has higher grant', () => {
-    expect(permission('/articles:m').mayGrant('/articles:r', ['/articles:r', '/articles:m'])).to.equal(false);
+  it('should not allow grant in basic use cases', () => {
+    expect(permission('/articles:s').mayGrant('/articles/1:r')).to.equal(false);
+    expect(permission('/articles?author=1:s').mayGrant('/articles?author=2:r')).to.equal(false);
+    expect(permission('/articles:r').mayGrant('/articles:r')).to.equal(false);
+  });
+
+  it('should not allow grant when permission has lesser or equal grant privileges', () => {
+    expect(permission('/articles:cmr').mayGrant('/articles:uds')).to.equal(false);
+    expect(permission('/articles:m').mayGrant('/articles:m')).to.equal(false);
+  });
+
+  it('should allow grant if user permission has higher grant', () => {
+    expect(permission('/articles:m').mayGrant('/articles:r', ['/articles:r', '/articles:m'])).to.equal(true);
   });
 });
 
 describe('mayRevoke()', () => {
-  it('should be an alias of mayGrant()', () => {
+  it('should allow basic revokes', () => {
     expect(permission('/articles:s').mayRevoke('/articles:r')).to.equal(true);
+    expect(permission('/articles:owner').mayRevoke('/articles:crud')).to.equal(true);
     expect(permission('/articles:s').mayRevoke('/articles:r', ['/articles:d', '/articles:r'])).to.equal(true);
     expect(permission('/articles:m').mayRevoke('/articles:r', ['/unrelated:s'])).to.equal(true);
+  });
+
+  it('should allow revoke with parameters', () => {
+    expect(permission('/articles:s').mayRevoke('/articles?author=user-1:r')).to.equal(true);
+    expect(permission('/articles?author=user-1:s').mayRevoke('/articles?author=user-1&foo=bar:r')).to.equal(true);
+  });
+
+  it('should allow revoke when grant privilege can grant itself', () => {
+    expect(permission('/articles:s').mayRevoke('/articles:scrud')).to.equal(true);
+  });
+
+  it('should not allow revoke in basic use cases', () => {
+    expect(permission('/articles:s').mayGrant('/articles/1:r')).to.equal(false);
+    expect(permission('/articles?author=1:s').mayGrant('/articles?author=2:r')).to.equal(false);
+    expect(permission('/articles:r').mayGrant('/articles:r')).to.equal(false);
+  });
+
+  it('should not allow revoke when permission has lesser or equal grant privileges', () => {
+    expect(permission('/articles:cmr').mayRevoke('/articles:uds')).to.equal(false);
+    expect(permission('/articles:m').mayRevoke('/articles:m')).to.equal(false);
+  });
+
+  it('should not allow revoke if user permission has higher grant', () => {
+    expect(permission('/articles:m').mayRevoke('/articles:r', ['/articles:r', '/articles:m'])).to.equal(false);
   });
 });
 
