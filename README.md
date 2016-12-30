@@ -14,7 +14,7 @@ URL Permissions are intended to provide authorization for web services that:
 
 Read more about the [URL Permission format](https://github.com/nielskrijger/url-permissions).
 
-## allows(searchPermissions)
+## allows(...searchPermissions)
 
 Returns `true` if at least one `searchPermission` matches the constraints specified in `permission`, otherwise returns `false`.
 
@@ -28,6 +28,7 @@ permission('/articles:read,update').allows('/articles:all'); // true
 permission('/articles:read').allows(['/articles:read', '/articles:update']); // true
 permission('/articles/article-1:read').allows('/articles:read'); // false
 permission('/articles:read').allows('/articles/article-1:read'); // false
+permission('/articles:read').allows('/articles:read', '/articles:read'); // false
 
 // Query parameter examples
 permission('/articles?author=user-1:read').allows('/articles:read'); // true
