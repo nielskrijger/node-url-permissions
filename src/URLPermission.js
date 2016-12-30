@@ -181,7 +181,7 @@ export default class URLPermission {
    * otherwise returns `false`.
    */
   matchPrivileges(userPrivileges) {
-    return _.every(this.privileges(), e => userPrivileges.includes(e));
+    return _.every(userPrivileges, e => this.privileges().includes(e));
   }
 
   /**
@@ -215,27 +215,22 @@ export default class URLPermission {
   }
 
   /**
-   * Returns `true` when url path, query parameters and privileges are covered
-   * by at least one of the spcified permissions.
+   * Returns `true` when this permission covers all specified permissions.
    *
-   * `permissions` can be either a string, an URLPermission or an array thereof.
+   * `permissions` can be either permission strings or an URLPermission object.
+   *
+   * Throws an error when permission string is invalid.
    */
-  allows(permissions) {
-    if (!_.isArray(permissions)) {
-      permissions = [permissions];
-    }
+  allows(...permissions) {
     for (let i = 0; i < permissions.length; i += 1) {
       if (_.isString(permissions[i])) {
         permissions[i] = new URLPermission(permissions[i]);
+      } else if (!(permissions[i] instanceof URLPermission)) {
+        throw new Error('Parameters must be an URLPermission object or a permission string');
       }
     }
-    for (const permission of permissions) {
-      // When there is a match return immediately; just 1 user permission has to match
-      if (this.matchUrl(permission) && this.matchPrivileges(permission.privileges())) {
-        return true;
-      }
-    }
-    return false;
+
+    return _.every(permissions, e => this.matchUrl(e) && this.matchPrivileges(e.privileges()));
   }
 
   /**

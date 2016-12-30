@@ -97,7 +97,7 @@ describe('parameters()', () => {
   it('should throw an error when parameters is not an object or string', () => {
     const perm = permission('/articles:r');
     const func = () => perm.parameters(false);
-    expect(func).to.throw('Parameters must be an object or string');
+    expect(func).to.throw('Parameters must be an URLPermission object or a permission string');
   });
 });
 
@@ -128,23 +128,20 @@ describe('grantPrivileges()', () => {
   });
 });
 
-describe('matches()', () => {
-  it('should match basic permissions', () => {
+describe('allows()', () => {
+  it('should allow basic permissions', () => {
     expect(permission('/articles:r').allows('/articles:read')).to.equal(true);
-    expect(permission('/articles:r').allows('/articles:read', [])).to.equal(true);
-    expect(permission('/articles:read,update').allows('/articles:r')).to.equal(false);
+    expect(permission('/articles:read,update').allows('/articles:r')).to.equal(true);
     expect(permission('/articles:read,update').allows('/articles:r,update')).to.equal(true);
-    expect(permission('/articles:read,update').allows('/articles:r,all')).to.equal(true);
+    expect(permission('/articles:read,update').allows('/articles:r,all')).to.equal(false);
     expect(permission('/articles:r').allows('/articles/:r')).to.equal(false);
-    expect(permission('/articles:read,update').allows('/articles:all')).to.equal(true);
-    expect(permission('/articles:read').allows(['/articles:read', '/articles:update'])).to.equal(true);
-    expect(permission('/articles:read').allows(['/articles:delete', '/articles:update'])).to.equal(false);
-    expect(permission('/articles:all').allows('/articles:read')).to.equal(false);
+    expect(permission('/articles:read,update').allows('/articles:all')).to.equal(false);
+    expect(permission('/articles:all').allows('/articles:read,update')).to.equal(true);
     expect(permission('/articles/article-1/comments/comment-1:r').allows('/articles:read')).to.equal(false);
     expect(permission('/articles/:r').allows('/articles/article-1:read')).to.equal(false);
   });
 
-  it('should match parameters', () => {
+  it('should allow parameters', () => {
     expect(permission('/articles?author=user-1:r').allows('/articles:r')).to.equal(true);
     expect(permission('/articles?author=user-1&status=draft:r').allows('/articles?author=user-1:r')).to.equal(true);
     expect(permission('/articles?author=user-1:r').allows('/articles?author=user-1&status=draft:r')).to.equal(true);
@@ -155,7 +152,7 @@ describe('matches()', () => {
     expect(permission('/articles?author=user-1:r').allows('/articles?author=user-1,user-2:r')).to.equal(true);
   });
 
-  it('should match wildcards', () => {
+  it('should allow wildcards', () => {
     expect(permission('/articles:r').allows('/art*cles:r')).to.equal(true);
     expect(permission('/artcles:r').allows('/art*cles:r')).to.equal(true);
     expect(permission('/articles/:r').allows('/art*cles:r')).to.equal(false);
@@ -170,6 +167,11 @@ describe('matches()', () => {
     expect(permission('/articles/article-1/comments/comment-1:r').allows('/articles/**/comment-1:r')).to.equal(true);
     expect(permission('/articles/article-1/comments/comment-1:r').allows('/articles/**/comments:r')).to.equal(false);
     expect(permission('/articles/article-1/comments:r').allows('/articles/**/comments-1:r')).to.equal(false);
+  });
+
+  it('should match multiple permissions', () => {
+    expect(permission('/articles:r').allows('/articles:read', '/articles:u')).to.equal(false);
+    expect(permission('/articles:owner').allows('/articles:read', '/articles:u')).to.equal(true);
   });
 });
 
@@ -351,7 +353,7 @@ describe('config(...)', () => {
         test1: ['c', 'r'],
         test2: ['r', 'd'],
       });
-      expect(permission('/articles:test1,test2').allows('/articles:crud')).to.equal(true);
+      expect(permission('/articles:test1,test2').allows('/articles:cd')).to.equal(true);
       const func = () => permission('/articles:all').allows('/articles:d');
       expect(func).to.throw(/Privilege 'a' does not exist/);
     });
