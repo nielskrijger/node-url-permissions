@@ -130,46 +130,46 @@ describe('grantPrivileges()', () => {
 
 describe('matches()', () => {
   it('should match basic permissions', () => {
-    expect(permission('/articles:r').matches('/articles:read')).to.equal(true);
-    expect(permission('/articles:r').matches('/articles:read', [])).to.equal(true);
-    expect(permission('/articles:read,update').matches('/articles:r')).to.equal(false);
-    expect(permission('/articles:read,update').matches('/articles:r,update')).to.equal(true);
-    expect(permission('/articles:read,update').matches('/articles:r,all')).to.equal(true);
-    expect(permission('/articles:r').matches('/articles/:r')).to.equal(false);
-    expect(permission('/articles:read,update').matches('/articles:all')).to.equal(true);
-    expect(permission('/articles:read').matches(['/articles:read', '/articles:update'])).to.equal(true);
-    expect(permission('/articles:read').matches(['/articles:delete', '/articles:update'])).to.equal(false);
-    expect(permission('/articles:all').matches('/articles:read')).to.equal(false);
-    expect(permission('/articles/article-1/comments/comment-1:r').matches('/articles:read')).to.equal(false);
-    expect(permission('/articles/:r').matches('/articles/article-1:read')).to.equal(false);
+    expect(permission('/articles:r').allows('/articles:read')).to.equal(true);
+    expect(permission('/articles:r').allows('/articles:read', [])).to.equal(true);
+    expect(permission('/articles:read,update').allows('/articles:r')).to.equal(false);
+    expect(permission('/articles:read,update').allows('/articles:r,update')).to.equal(true);
+    expect(permission('/articles:read,update').allows('/articles:r,all')).to.equal(true);
+    expect(permission('/articles:r').allows('/articles/:r')).to.equal(false);
+    expect(permission('/articles:read,update').allows('/articles:all')).to.equal(true);
+    expect(permission('/articles:read').allows(['/articles:read', '/articles:update'])).to.equal(true);
+    expect(permission('/articles:read').allows(['/articles:delete', '/articles:update'])).to.equal(false);
+    expect(permission('/articles:all').allows('/articles:read')).to.equal(false);
+    expect(permission('/articles/article-1/comments/comment-1:r').allows('/articles:read')).to.equal(false);
+    expect(permission('/articles/:r').allows('/articles/article-1:read')).to.equal(false);
   });
 
   it('should match parameters', () => {
-    expect(permission('/articles?author=user-1:r').matches('/articles:r')).to.equal(true);
-    expect(permission('/articles?author=user-1&status=draft:r').matches('/articles?author=user-1:r')).to.equal(true);
-    expect(permission('/articles?author=user-1:r').matches('/articles?author=user-1&status=draft:r')).to.equal(true);
-    expect(permission('/articles:r').matches('/articles?author=*:r')).to.equal(true);
-    expect(permission('/articles:r').matches('/articles?author=user-1:r')).to.equal(true);
-    expect(permission('/articles?author=*:r').matches('/articles?author=user-1:r')).to.equal(false);
-    expect(permission('/articles?author=user-1,user-2:r').matches('/articles?author=user-1:r')).to.equal(true);
-    expect(permission('/articles?author=user-1:r').matches('/articles?author=user-1,user-2:r')).to.equal(true);
+    expect(permission('/articles?author=user-1:r').allows('/articles:r')).to.equal(true);
+    expect(permission('/articles?author=user-1&status=draft:r').allows('/articles?author=user-1:r')).to.equal(true);
+    expect(permission('/articles?author=user-1:r').allows('/articles?author=user-1&status=draft:r')).to.equal(true);
+    expect(permission('/articles:r').allows('/articles?author=*:r')).to.equal(true);
+    expect(permission('/articles:r').allows('/articles?author=user-1:r')).to.equal(true);
+    expect(permission('/articles?author=*:r').allows('/articles?author=user-1:r')).to.equal(false);
+    expect(permission('/articles?author=user-1,user-2:r').allows('/articles?author=user-1:r')).to.equal(true);
+    expect(permission('/articles?author=user-1:r').allows('/articles?author=user-1,user-2:r')).to.equal(true);
   });
 
   it('should match wildcards', () => {
-    expect(permission('/articles:r').matches('/art*cles:r')).to.equal(true);
-    expect(permission('/artcles:r').matches('/art*cles:r')).to.equal(true);
-    expect(permission('/articles/:r').matches('/art*cles:r')).to.equal(false);
-    expect(permission('/articles:r').matches('/articles*:r')).to.equal(true);
-    expect(permission('/articles?author=user-2:r').matches('/articles/*:r')).to.equal(false);
-    expect(permission('/articles:r').matches('/articles/*:r')).to.equal(false);
-    expect(permission('/articles/*:r').matches('/articles/article-1:r')).to.equal(true);
-    expect(permission('/articles/:r').matches('/articles/article-1/comments:r')).to.equal(false);
-    expect(permission('/articles/article-1/comments:r').matches('/articles/**:r')).to.equal(true);
-    expect(permission('/articles/article-1/comments:r').matches('/articles/*:r')).to.equal(false);
-    expect(permission('/articles/article-1/comments:r').matches('/articles*:r')).to.equal(false);
-    expect(permission('/articles/article-1/comments/comment-1:r').matches('/articles/**/comment-1:r')).to.equal(true);
-    expect(permission('/articles/article-1/comments/comment-1:r').matches('/articles/**/comments:r')).to.equal(false);
-    expect(permission('/articles/article-1/comments:r').matches('/articles/**/comments-1:r')).to.equal(false);
+    expect(permission('/articles:r').allows('/art*cles:r')).to.equal(true);
+    expect(permission('/artcles:r').allows('/art*cles:r')).to.equal(true);
+    expect(permission('/articles/:r').allows('/art*cles:r')).to.equal(false);
+    expect(permission('/articles:r').allows('/articles*:r')).to.equal(true);
+    expect(permission('/articles?author=user-2:r').allows('/articles/*:r')).to.equal(false);
+    expect(permission('/articles:r').allows('/articles/*:r')).to.equal(false);
+    expect(permission('/articles/*:r').allows('/articles/article-1:r')).to.equal(true);
+    expect(permission('/articles/:r').allows('/articles/article-1/comments:r')).to.equal(false);
+    expect(permission('/articles/article-1/comments:r').allows('/articles/**:r')).to.equal(true);
+    expect(permission('/articles/article-1/comments:r').allows('/articles/*:r')).to.equal(false);
+    expect(permission('/articles/article-1/comments:r').allows('/articles*:r')).to.equal(false);
+    expect(permission('/articles/article-1/comments/comment-1:r').allows('/articles/**/comment-1:r')).to.equal(true);
+    expect(permission('/articles/article-1/comments/comment-1:r').allows('/articles/**/comments:r')).to.equal(false);
+    expect(permission('/articles/article-1/comments:r').allows('/articles/**/comments-1:r')).to.equal(false);
   });
 });
 
@@ -310,8 +310,8 @@ describe('config(...)', () => {
         c: 'create',
         r: 'read',
       });
-      expect(permission('/articles:c').matches('/articles:create')).to.equal(true);
-      const func = () => permission('/articles:d').matches('/articles:d');
+      expect(permission('/articles:c').allows('/articles:create')).to.equal(true);
+      const func = () => permission('/articles:d').allows('/articles:d');
       expect(func).to.throw(/Privilege 'd' does not exist/);
     });
   });
@@ -343,8 +343,8 @@ describe('config(...)', () => {
         test1: ['c', 'r'],
         test2: ['r', 'd'],
       });
-      expect(permission('/articles:test1,test2').matches('/articles:crud')).to.equal(true);
-      const func = () => permission('/articles:all').matches('/articles:d');
+      expect(permission('/articles:test1,test2').allows('/articles:crud')).to.equal(true);
+      const func = () => permission('/articles:all').allows('/articles:d');
       expect(func).to.throw(/Privilege 'a' does not exist/);
     });
   });

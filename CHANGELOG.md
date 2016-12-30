@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2016-12-30
+### Changed
+- Renamed `matches()` to `allows()`
+
 ## [0.2.0] - 2016-12-27
 ### Changed
 - `mayGrant()` now allows granting basic privileges (crud) to anyone.

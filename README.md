@@ -14,7 +14,7 @@ URL Permissions are intended to provide authorization for web services that:
 
 Read more about the [URL Permission format](https://github.com/nielskrijger/url-permissions).
 
-## matches(searchPermissions)
+## allows(searchPermissions)
 
 Returns `true` if at least one `searchPermission` matches the constraints specified in `permission`, otherwise returns `false`.
 
@@ -22,31 +22,31 @@ Returns `true` if at least one `searchPermission` matches the constraints specif
 import permission from 'url-permissions';
 
 // Basic examples
-permission('/articles:read').matches('/articles:read'); // true
-permission('/articles:read,update').matches('/articles:read'); // false
-permission('/articles:read,update').matches('/articles:all'); // true
-permission('/articles:read').matches(['/articles:read', '/articles:update']); // true
-permission('/articles/article-1:read').matches('/articles:read'); // false
-permission('/articles:read').matches('/articles/article-1:read'); // false
+permission('/articles:read').allows('/articles:read'); // true
+permission('/articles:read,update').allows('/articles:read'); // false
+permission('/articles:read,update').allows('/articles:all'); // true
+permission('/articles:read').allows(['/articles:read', '/articles:update']); // true
+permission('/articles/article-1:read').allows('/articles:read'); // false
+permission('/articles:read').allows('/articles/article-1:read'); // false
 
 // Query parameter examples
-permission('/articles?author=user-1:read').matches('/articles:read'); // true
-permission('/articles?author=user-1&status=draft:read').matches('/articles?author=user-1:read'); // true
-permission('/articles:read').matches('/articles?author=user-1:read'); // false
+permission('/articles?author=user-1:read').allows('/articles:read'); // true
+permission('/articles?author=user-1&status=draft:read').allows('/articles?author=user-1:read'); // true
+permission('/articles:read').allows('/articles?author=user-1:read'); // false
 
 // Wildcards * and **
-permission('/articles:read').matches('/art*cles:read'); // true
-permission('/articles/article-1:read').matches('/articles/*:read'); // true
-permission('/articles?author=user-2:read').matches('/articles/*:read'); // false
-permission('/articles?author=user-2:read').matches('/articles/*:read'); // false
-permission('/articles:read').matches('/articles/*:read'); // false
-permission('/articles/*:read').matches('/articles/article-1/comments:read'); // false
-permission('/articles/**:read').matches('/articles/article-1/comments:read'); // true
+permission('/articles:read').allows('/art*cles:read'); // true
+permission('/articles/article-1:read').allows('/articles/*:read'); // true
+permission('/articles?author=user-2:read').allows('/articles/*:read'); // false
+permission('/articles?author=user-2:read').allows('/articles/*:read'); // false
+permission('/articles:read').allows('/articles/*:read'); // false
+permission('/articles/*:read').allows('/articles/article-1/comments:read'); // false
+permission('/articles/**:read').allows('/articles/article-1/comments:read'); // true
 
 // Privilege aliases
-permission('/articles:crud').matches('/articles:all'); // true
-permission('/articles:all').matches('/articles:read'); // false
-permission('/articles:read').matches('/articles:all'); // false
+permission('/articles:crud').allows('/articles:all'); // true
+permission('/articles:all').allows('/articles:read'); // false
+permission('/articles:read').allows('/articles:all'); // false
 ```
 
 ## path([ path ])

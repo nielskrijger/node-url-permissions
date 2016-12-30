@@ -220,7 +220,7 @@ export default class URLPermission {
    *
    * `permissions` can be either a string, an URLPermission or an array thereof.
    */
-  matches(permissions) {
+  allows(permissions) {
     if (!_.isArray(permissions)) {
       permissions = [permissions];
     }
