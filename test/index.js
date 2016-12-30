@@ -252,6 +252,14 @@ describe('toObject()', () => {
   });
 });
 
+describe('toString()', () => {
+  it('should create string representation of permission', () => {
+    const input = '/articles/**/article-1?author=user-1,user-2&flag=1:owner';
+    const output = '/articles/**/article-1?author=user-1,user-2&flag=1:cruds';
+    expect(permission(input).toString()).to.equal(output);
+  });
+});
+
 describe('config(...)', () => {
   describe('grant privileges', () => {
     it('should throw an error when grant privileges is not an array', () => {

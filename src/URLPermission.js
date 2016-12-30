@@ -310,4 +310,21 @@ export default class URLPermission {
       privileges: this.privileges(),
     };
   }
+
+  /**
+   * Returns a string representation of an URL permission.
+   */
+  toString() {
+    let result = this.path();
+    const params = this.parameters();
+    if (params) {
+      result += '?';
+      Object.keys(params).forEach((key, i) => {
+        if (i > 0) result += '&';
+        result += `${key}=${params[key].join(',')}`;
+      });
+    }
+    result += `:${this.privileges().join('')}`;
+    return result;
+  }
 }
