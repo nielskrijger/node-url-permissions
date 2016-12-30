@@ -1,6 +1,6 @@
 {
   "name": "url-permissions",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Node.js library for URL Permissions",
   "main": "lib/index.js",
   "author": "Niels Krijger <niels@kryger.nl>",
