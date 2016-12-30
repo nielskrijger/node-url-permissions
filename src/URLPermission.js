@@ -44,7 +44,7 @@ export default class URLPermission {
       } else if (_.isString(parameters)) {
         this._parameters = this._parseParameters(parameters);
       } else {
-        throw new Error('Parameters must be an object or string');
+        throw new Error('Parameters must be an URLPermission object or a permission string');
       }
       return this;
     }
