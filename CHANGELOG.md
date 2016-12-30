@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2016-12-30
+### Fixed
+- Fixed basic permissions being incorrectly allowed, e.g. `/articles:read,update` would "allow" `/articles:all`.
+
+### Changed
+- `allows()` now accepts permissions as varargs.
+- `allows()` now evaluates permissions as AND rather than OR.
+
+### Added
+- Add `toString()` method.
+
 ## [0.3.0] - 2016-12-30
 ### Changed
 - Renamed `matches()` to `allows()`
