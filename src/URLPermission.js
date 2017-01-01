@@ -191,17 +191,18 @@ export default class URLPermission {
    * otherwise returns `false`.
    */
   matchParameters(parameters) {
-    // If user has no parameters it means he is granted all possible parameters
-    if (!parameters) return true;
+    // If permission has no parameters it means he is granted all possible parameters
+    const ourParams = this.parameters();
+    if (!ourParams) return true;
 
-    return _.every(Object.keys(parameters), (key) => {
-      // If parameter does not exist it is fine
-      if (!this.parameters() || !this.parameters()[key]) {
-        return true;
+    return _.every(Object.keys(ourParams), (key) => {
+      // Parameter must be defined
+      if (!parameters || !parameters[key]) {
+        return false;
       }
 
-      // If parameter exists, check if param is included
-      return _.some(parameters[key], e => this.parameters()[key].includes(e));
+      // If parameter exists, check if param values are all included
+      return _.every(parameters[key], e => ourParams[key].includes(e));
     });
   }
 

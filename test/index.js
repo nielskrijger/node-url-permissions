@@ -6,7 +6,7 @@ beforeEach(() => {
   permission.config(false);
 });
 
-describe('permission.constructor()', () => {
+describe('constructor()', () => {
   it('should throw error when URL permission is not a string', () => {
     expect((() => permission(false)))
       .to.throw('Permission must be a string');
@@ -142,14 +142,15 @@ describe('allows()', () => {
   });
 
   it('should allow parameters', () => {
-    expect(permission('/articles?author=user-1:r').allows('/articles:r')).to.equal(true);
-    expect(permission('/articles?author=user-1&status=draft:r').allows('/articles?author=user-1:r')).to.equal(true);
-    expect(permission('/articles?author=user-1:r').allows('/articles?author=user-1&status=draft:r')).to.equal(true);
-    expect(permission('/articles:r').allows('/articles?author=*:r')).to.equal(true);
     expect(permission('/articles:r').allows('/articles?author=user-1:r')).to.equal(true);
-    expect(permission('/articles?author=*:r').allows('/articles?author=user-1:r')).to.equal(false);
+    expect(permission('/articles?author=user-1:r').allows('/articles:r')).to.equal(false);
+    expect(permission('/articles?author=user-1&status=draft:r').allows('/articles?author=user-1:r')).to.equal(false);
+    expect(permission('/articles?author=user-1:r').allows('/articles?author=user-1&status=draft:r')).to.equal(true);
+    expect(permission('/articles?author=*:r').allows('/articles?author=user-1:r')).to.equal(false); // No wildcards exist
     expect(permission('/articles?author=user-1,user-2:r').allows('/articles?author=user-1:r')).to.equal(true);
-    expect(permission('/articles?author=user-1:r').allows('/articles?author=user-1,user-2:r')).to.equal(true);
+    expect(permission('/articles?author=user-1,user-2:r').allows('/articles?author=user-1,user-3:r')).to.equal(false);
+    expect(permission('/articles?author=user-1:r').allows('/articles?author=user-1,user-2:r')).to.equal(false);
+    expect(permission('/articles?author=user-1,user-2:r').allows('/articles?author=user-1,user-2&status=draft:r')).to.equal(true);
   });
 
   it('should allow wildcards', () => {
