@@ -9,4 +9,4 @@ function permission(perm) {
 permission.config = config;
 permission.validate = validate;
 
-export default permission;
+export { permission };

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import permission from '../src/index';
+import { permission } from '../src/index';
 
 describe('validate(...)', () => {
   it('should return true when string is valid', () => {

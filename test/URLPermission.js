@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import permission from '../src/index';
+import { permission } from '../src/index';
 
 beforeEach(() => {
   // Reset global config

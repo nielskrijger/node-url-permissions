@@ -14,26 +14,31 @@ URL Permissions are intended to provide authorization for web services that:
 
 Read more about the [URL Permission format](https://github.com/nielskrijger/url-permissions).
 
+# permission
+
 ## allows(...searchPermissions)
 
 Returns `true` if at least one `searchPermission` matches the constraints specified in `permission`, otherwise returns `false`.
 
 ```js
-import permission from 'url-permissions';
+import { permission } from 'url-permissions';
 
 // Basic examples
 permission('/articles:read').allows('/articles:read'); // true
-permission('/articles:read,update').allows('/articles:read'); // false
-permission('/articles:read,update').allows('/articles:all'); // true
-permission('/articles:read').allows(['/articles:read', '/articles:update']); // true
+permission('/articles:read,update').allows('/articles:read'); // true
+permission('/articles:all').allows('/articles:read,update'); // false
+permission('/articles:read,update').allows('/articles:all'); // false
+permission('/articles:read').allows(['/articles:read', '/articles:update']); // false
 permission('/articles/article-1:read').allows('/articles:read'); // false
 permission('/articles:read').allows('/articles/article-1:read'); // false
-permission('/articles:read').allows('/articles:read', '/articles:read'); // false
+permission('/articles:read,update').allows('/articles:read', '/articles:update'); // true
+permission('/articles:read').allows('/articles:read', '/articles:update'); // false
 
 // Query parameter examples
-permission('/articles?author=user-1:read').allows('/articles:read'); // true
-permission('/articles?author=user-1&status=draft:read').allows('/articles?author=user-1:read'); // true
-permission('/articles:read').allows('/articles?author=user-1:read'); // false
+permission('/articles:read').allows('/articles?author=user-1:read'); // true
+permission('/articles?author=user-1:read').allows('/articles:read'); // false
+permission('/articles?author=user-1:read').allows('/articles?author=user-1&status=draft:read'); // true
+permission('/articles?author=user-1&status=draft:read').allows('/articles?author=user-1:read'); // false
 
 // Wildcards * and **
 permission('/articles:read').allows('/art*cles:read'); // true
@@ -114,7 +119,7 @@ To grant a permission the grantor must have "manage" or "super" privileges. Both
 The grantor/grantee privileges can be customized using `permission.config()`.
 
 ```js
-import permission from 'url-permissions';
+import { permission } from 'url-permissions';
 
 permission('/articles:manage').mayGrant('/articles:read', []); // true
 permission('/articles:manage').mayGrant('/articles:read', ['/articles:delete']); // true
@@ -133,7 +138,7 @@ Returns `true` if permission allows revoking `permission` to grantee.
 Its behaviour is similar to that of `mayGrant()` with the exception a "manage" privilege does not allow revoking any basic privilege ("crud") from anyone with a "manage" or "super" privilege.
 
 ```js
-import permission from 'url-permissions';
+import { permission } from 'url-permissions';
 
 permission('/articles:manage').mayRevoke('/articles:read', []); // true
 permission('/articles:manage').mayRevoke('/articles:read', ['/articles:super']); // false
@@ -143,12 +148,44 @@ permission('/articles:super').mayRevoke('/articles/article-1:read', ['/articles:
 permission('/articles:super').mayRevoke('/articles/article-1:read', ['/articles:super']); // true
 ```
 
-## permission.config(options)
+## toObject()
+
+Returns an object representation of an URL permission containing three
+properties: `url`, `attributes` and `actions`.
+
+```js
+import { permission } from 'url-permissions';
+
+permission('/articles/*?author=user-1,user-2&flag=true:all').toObject()
+// {
+//   path: '/articles/*',
+//   attributes: {
+//     author: ['user-1', 'user-2'],
+//     flag: ['true'],
+//   },
+//   privileges: ['r', 'c', 'u', 'd'],
+// }
+```
+
+## validate()
+
+Static method to checks if url permission string is valid.
+
+```js
+import { permission } from 'url-permissions';
+
+permission.validate('/articles?author=1,2:all,m'); // true
+permission.validate('/articles?author=1,2'); // false, no privileges
+permission.validate('/articles:unknown'); // false, unknown privilege/alias
+permission.validate('?author=user-1:c'); // false, no path
+```
+
+## config(options)
 
 a static method to change global config options. Changing global config doesn't affect existing instances.
 
 ```js
-import permission from 'url-permissions';
+import { permission } from 'url-permissions';
 
 permission.config({
   privileges: {
@@ -180,7 +217,7 @@ Anyone with grant privileges is allowed to grant its privileges to grantees with
 Example:
 
 ```js
-import permission from 'url-permissions';
+import { permission } from 'url-permissions';
 
 permission.config({
   grantPrivileges: {
@@ -198,33 +235,3 @@ permission('/articles:z').mayGrant('/articles:a', ['/articles:z']); // true
 ```
 
 Notice the last example where `z` may grant a permission to a grantee with `z`, whereas an `y` may not grant the same permission to another `y`. We'll leave it to you to figure out why.
-
-## toObject()
-
-Returns an object representation of an URL permission containing three
-properties: `url`, `attributes` and `actions`.
-
-```js
-import permission from 'url-permissions';
-
-permission('/articles/*?author=user-1,user-2&flag=true:all').toObject()
-// {
-//   path: '/articles/*',
-//   attributes: {
-//     author: ['user-1', 'user-2'],
-//     flag: ['true'],
-//   },
-//   privileges: ['r', 'c', 'u', 'd'],
-// }
-```
-
-## validate()
-
-Checks if url permission is valid.
-
-```js
-permission.validate('/articles?author=1,2:all,m'); // true
-permission.validate('/articles?author=1,2'); // false, no privileges
-permission.validate('/articles:unknown'); // false, unknown privilege/alias
-permission.validate('?author=user-1:c'); // false, no path
-```
