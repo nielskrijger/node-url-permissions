@@ -77,12 +77,12 @@ describe('permission', () => {
     it('should change permission parameters with an object', () => {
       const perm = permission('/articles?attr1=test,test2&attr2=test3:r');
       perm.parameters({
-        attr1: 'test',
-        attr3: 'test',
+        attr1: 'a1,a2',
+        attr3: ['a2', 'a3'],
       });
       expect(perm.parameters()).to.deep.equal({
-        attr1: 'test',
-        attr3: 'test',
+        attr1: ['a1', 'a2'],
+        attr3: ['a2', 'a3'],
       });
     });
 
@@ -99,6 +99,12 @@ describe('permission', () => {
       const perm = permission('/articles:r');
       const func = () => perm.parameters(false);
       expect(func).to.throw('Parameters must be an URLPermission object or a permission string');
+    });
+
+    it('should throw an error when parameter value is neither string nor array', () => {
+      const perm = permission('/articles:r');
+      const func = () => perm.parameters({ attr: false });
+      expect(func).to.throw('Parameter value must be either a string or an array of strings');
     });
   });
 

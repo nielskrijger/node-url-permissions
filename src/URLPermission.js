@@ -40,7 +40,19 @@ export default class URLPermission {
   parameters(parameters) {
     if (parameters !== undefined) {
       if (_.isObject(parameters)) {
-        this._parameters = parameters;
+        this._parameters = _.cloneDeep(parameters);
+
+        Object.keys(this._parameters).forEach((key) => {
+          // Parse comma separated string
+          if (_.isString(this._parameters[key])) {
+            this._parameters[key] = this._parameters[key].split(',');
+          }
+
+          // If parameter is neither a string or string array throw error
+          if (!_.isArray(this._parameters[key])) {
+            throw new Error('Parameter value must be either a string or an array of strings');
+          }
+        });
       } else if (_.isString(parameters)) {
         this._parameters = this._parseParameters(parameters);
       } else {

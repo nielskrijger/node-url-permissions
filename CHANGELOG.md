@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## unreleased
 ### Fixed
 - Fix parameters being validated in the wrong order
+- `parameters()` now processes `{ attr: 'value1,value2' }` into `{ attr: ['value1', 'value2' ]}` rather than `{ attr: 'value1,value2' }`
 
 ### Changed
 - Refactored test files setup
