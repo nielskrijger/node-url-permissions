@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Fix parameters being validated in the wrong order
 
+### Changed
+- Refactored test files setup
+
 ## [0.4.0] - 2016-12-30
 ### Fixed
 - Fixed basic permissions being incorrectly allowed, e.g. `/articles:read,update` would "allow" `/articles:all`.
