@@ -54,7 +54,13 @@ An URL Permission consists of three components:
 
 2. **Parameters**: parameters are optional attribute-based restrictions and are  very similar to url query parameters.
 
-    For example, the permission `/articles:read` grants read access to all articles whereas `/articles?author=user-1:read` grants read access only to articles whose author is `user-1`.
+    For example, the permission `/articles:read` grants read access to all articles whereas:
+
+    ```
+    /articles?author=user-1:read
+    ```
+
+    ... grants read access only to articles whose author is `user-1`.
 
     You can specify multiple parameters and values like so:
 
