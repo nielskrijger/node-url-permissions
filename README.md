@@ -11,8 +11,8 @@ This Node.js library facilitates formatting permissions for users, groups or any
 ```js
 import { permissions } from 'url-permissions';
 
-function authorize(permissions) {
-  if (!permissions(permissions).allows('/articles:read')) {
+function authorize(userPermissions) {
+  if (!permissions(userPermissions).allows('/articles:read')) {
     throw new Error('Not allowed here!')
   }
 }
