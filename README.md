@@ -31,6 +31,79 @@ URL Permissions are intended to provide authorization for web services that:
 
 Read more about the [URL Permission format](https://github.com/nielskrijger/url-permissions).
 
+## Format
+
+```
+<path>?<parameters>:<privileges>
+```
+
+An URL Permission consists of three components:
+
+1. **Path**: identifies which resource the permission applies to. Can be an absolute pathname (starting with `/`) or an entire url with domain name and url scheme. Urls may include wildcards `*` and `**` to specify permissions over a range of resource instances.
+2. **Parameters**: optional parameters that apply additional restrictions to the permission. For example, a permission `/articles:read` grants read access to all articles whereas `/articles?author=user-1:read` grants read access only to articles whose author is `user-1`.
+3. **Privileges**: the privileges allowed on the resource. You can either specify these as a comma-separated set of action names, their abbreviations or an alias (e.g. `create,read,update,delete`, `crud` or `all` which are equivalent).
+
+### Path
+
+URL-Based Permissions are ideal for REST API's. REST URL's are structured as follows:
+
+```
+https://api.example.com/collection/:resource_id/sub_collection/:sub_resource2
+```
+
+For example;
+
+```
+https://api.example.com/articles/article-1/comments/comment-1
+```
+
+... the following URL permissions would allow a user to read that comment:
+
+```
+/articles/*:read
+/articles/*/comments/*:read
+https://api.example.com/articles/article-1/comments/comment-1:read
+```
+
+### Parameters
+
+Parameters restrict permission to resources with specified attributes. For example:
+
+```
+/articles?author=user-1:all
+```
+
+... grants access to all CRUD operations on articles written by author `user-1`, A more complex example:
+
+```
+/articles?author=user-1,user-2&status=published:read
+```
+
+... grants read access to `published` articles of `user-1` and `user-2`,
+
+The omission of a parameter implies all access, e.g. `/articles:r` grants access to all articles, whereas `/articles?author=user-1:r` only grants access to articles of `user-1`.
+
+### Privileges
+
+Privileges specify which operations are allowed on a resource. You can fully customize all action identifiers, names and what they represent. The following are the default:
+
+Identifier | Name      | Description
+-----------|-----------|-----------------
+`r`        | `read`    | View resource.
+`c`        | `create`  | Create resource.
+`u`        | `update`  | Update resource.
+`d`        | `delete`  | Delete resource.
+`m`        | `manage`  | Set permissions of users or groups without `manage` or `super` permission for the applicable resource.
+`s`        | `super`   | Set permissions of all users and groups for the applicable resource.
+
+In addition to the privileges above the following aliases exist:
+
+Name      | Alias for | Description
+----------|-----------|-------------------
+`all`     | `crud`    | Allows user to perform the most common operations on a resource apart from changing user or group permissions.
+`manager` | `crudm`   | Allows user to perform CRUD operations and set permissions of users without `manager` or `owner` permissions.
+`owner`   | `cruds`   | Allows all possible operations on resource.
+
 # permission
 
 ## allows(...searchPermissions)
@@ -114,7 +187,7 @@ perm.privileges(); // ['c', 'r', 'u', 'd', 'm', 's']
 
 ## grantPrivileges()
 
-Gets the privileges that allow granting permissions.
+Gets the privileges which allow granting permissions.
 
 ```js
 const perm = permission('/articles:read,manage,super');
@@ -236,9 +309,9 @@ permission.config({
 });
 ```
 
-### grantPrivileges
+### Grant privileges
 
-`grantPrivileges` must be an object of key-value pairs where each key is a one-character privilege identifier and each value an array of privileges it is allowed to grant.
+The config option `grantPrivileges` must be an object of key-value pairs where each key is a one-character privilege identifier and each value an array of privileges it is allowed to grant.
 
 Anyone with grant privileges is allowed to grant its privileges to grantees without any grant privileges. However, if a grantee does have grant privileges its grant privileges must be covered by those of the grantor.
 
@@ -263,3 +336,7 @@ permission('/articles:z').mayGrant('/articles:a', ['/articles:z']); // true
 ```
 
 Notice the last example where `z` may grant a permission to a grantee with `z`, whereas an `y` may not grant the same permission to another `y`. We'll leave it to you to figure out why.
+
+# permissions
+
+The `permissions(...)` function is a collection of permissions that simplify verifying a collection of permissions.
