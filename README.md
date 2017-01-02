@@ -6,6 +6,23 @@ This Node.js library facilitates formatting permissions for users or groups in t
 <path>?<parameters>:<privileges>
 ```
 
+**For example:**
+
+```js
+import { permissions } from 'url-permissions';
+
+function authorize(permissions) {
+  if (!permissions(permissions).allows('/articles:read')) {
+    throw new Error('Not allowed here!')
+  }
+}
+
+// Permission '/articles:read,create' will grant access to '/articles:read'
+authorize(['/articles:read', '/accounts/12345:owner', '/articles?author=12345:owner']);
+```
+
+# Description
+
 URL Permissions are intended to provide authorization for web services that:
 
 1. have a REST API;
