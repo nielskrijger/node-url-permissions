@@ -39,21 +39,30 @@ Read more about the [URL Permission format](https://github.com/nielskrijger/url-
 
 An URL Permission consists of three components:
 
-1. **Path**: identifies which resource the permission applies to. Can be an absolute pathname (starting with `/`) or an entire url with domain name and url scheme. Urls may include wildcards `*` and `**` to specify permissions over a range of resource instances.
+1. **Path**: identifies which resource the permission applies to. Can be an absolute pathname (starting with `/`) or an entire url with domain name and url scheme.
 
-    For example to read the comment `https://api.example.com/articles/article-1/comments/comment-1` you might use one of the following URL permissions:
+    Paths may include wildcards `_` (single character) and `*` (any or zero characters).
+
+    For example, to read the new article comment accessible at `https://api.example.com/articles/article-1/comments/comment-1` you might use one of the following URL permissions:
 
     ```
     /articles/*:read
     /articles/*/comments/*:read
+    https://api.example.com/articles/*:read
     https://api.example.com/articles/article-1/comments/comment-1:read
     ```
 
-2. **Parameters**: optional parameters that apply additional restrictions to the permission. For example, a permission `/articles:read` grants read access to all articles whereas `/articles?author=user-1:read` grants read access only to articles whose author is `user-1`. You can specify multiple parameters and values as follows:
+2. **Parameters**: parameters are optional attribute-based restrictions and are  very similar to url query parameters.
+
+    For example, the permission `/articles:read` grants read access to all articles whereas `/articles?author=user-1:read` grants read access only to articles whose author is `user-1`.
+
+    You can specify multiple parameters and values like so:
 
     ```
-    /articles?author=user-1,user-2&status=published:read
+    /articles?author=user-1,user-2&status=published:r
     ```
+
+    ... which allows read access of published articles of both author `user-1` and `user-2`.
 
 3. **Privileges**: the privileges allowed on the resource. You can either specify these as a comma-separated set of action names, their identifiers or an alias (e.g. `create,read,update,delete`, `crud` or `all` are equivalent). Privileges are fully customizable. These default are:
 
