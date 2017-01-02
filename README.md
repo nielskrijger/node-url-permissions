@@ -1,6 +1,6 @@
 # Node URL Permission
 
-This Node.js library facilitates formatting permissions for users or groups in the following way:
+This Node.js library facilitates formatting permissions for users, groups or any other security principal in the following way:
 
 ```
 <path>?<parameters>:<privileges>
