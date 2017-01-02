@@ -309,6 +309,13 @@ export default class URLPermission {
   }
 
   /**
+   * Returns a clone of this URLPermission.
+   */
+  clone() {
+    return new URLPermission(this.toString());
+  }
+
+  /**
    * Returns an object representation of an URL permission.
    */
   toObject() {

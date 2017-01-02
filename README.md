@@ -167,6 +167,17 @@ permission('/articles/*?author=user-1,user-2&flag=true:all').toObject()
 // }
 ```
 
+## clone()
+
+Returns a clone of the permission.
+
+```js
+const a = permission('/articles:r');
+const b = a.clone();
+a.privileges(['u']);
+b.privileges(); // ['r']
+```
+
 ## validate()
 
 Static method to checks if url permission string is valid.

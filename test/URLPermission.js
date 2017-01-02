@@ -249,6 +249,19 @@ describe('permission', () => {
     });
   });
 
+  describe('clone()', () => {
+    it('should make a clone of permission', () => {
+      const a = permission('/articles?status=published:m');
+      const b = a.clone();
+      a.path('/new');
+      a.parameters({ status: 'draft' });
+      a.privileges(['r']);
+      expect(b.path()).to.equal('/articles');
+      expect(b.parameters()).to.deep.equal({ status: ['published'] });
+      expect(b.privileges()).to.deep.equal(['m']);
+    });
+  });
+
   describe('toObject()', () => {
     it('should create object representation of permission', () => {
       expect(permission('/articles/**/article-1?author=user-1,user-2&flag=1:crud').toObject()).to.deep.equal({
