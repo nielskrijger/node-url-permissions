@@ -41,7 +41,24 @@ An URL Permission consists of three components:
 
 1. **Path**: identifies which resource the permission applies to. Can be an absolute pathname (starting with `/`) or an entire url with domain name and url scheme. Urls may include wildcards `*` and `**` to specify permissions over a range of resource instances.
 2. **Parameters**: optional parameters that apply additional restrictions to the permission. For example, a permission `/articles:read` grants read access to all articles whereas `/articles?author=user-1:read` grants read access only to articles whose author is `user-1`.
-3. **Privileges**: the privileges allowed on the resource. You can either specify these as a comma-separated set of action names, their abbreviations or an alias (e.g. `create,read,update,delete`, `crud` or `all` which are equivalent).
+3. **Privileges**: the privileges allowed on the resource. You can either specify these as a comma-separated set of action names, their abbreviations or an alias (e.g. `create,read,update,delete`, `crud` or `all` which are equivalent). Privileges are fully customizable. These are the default:
+
+    Identifier | Name      | Description
+    -----------|-----------|-----------------
+    `r`        | `read`    | View resource.
+    `c`        | `create`  | Create resource.
+    `u`        | `update`  | Update resource.
+    `d`        | `delete`  | Delete resource.
+    `m`        | `manage`  | Set permissions of users or groups without `manage` or `super` permission for the applicable resource.
+    `s`        | `super`   | Set permissions of all users and groups for the applicable resource.
+
+    In addition to the privileges above the following aliases exist:
+
+    Name      | Alias for | Description
+    ----------|-----------|-------------------
+    `all`     | `crud`    | Allows user to perform the most common operations on a resource apart from changing user or group permissions.
+    `manager` | `crudm`   | Allows user to perform CRUD operations and set permissions of users without `manager` or `owner` permissions.
+    `owner`   | `cruds`   | Allows all possible operations on resource.
 
 ### Path
 
@@ -87,22 +104,7 @@ The omission of a parameter implies all access, e.g. `/articles:r` grants access
 
 Privileges specify which operations are allowed on a resource. You can fully customize all action identifiers, names and what they represent. The following are the default:
 
-Identifier | Name      | Description
------------|-----------|-----------------
-`r`        | `read`    | View resource.
-`c`        | `create`  | Create resource.
-`u`        | `update`  | Update resource.
-`d`        | `delete`  | Delete resource.
-`m`        | `manage`  | Set permissions of users or groups without `manage` or `super` permission for the applicable resource.
-`s`        | `super`   | Set permissions of all users and groups for the applicable resource.
 
-In addition to the privileges above the following aliases exist:
-
-Name      | Alias for | Description
-----------|-----------|-------------------
-`all`     | `crud`    | Allows user to perform the most common operations on a resource apart from changing user or group permissions.
-`manager` | `crudm`   | Allows user to perform CRUD operations and set permissions of users without `manager` or `owner` permissions.
-`owner`   | `cruds`   | Allows all possible operations on resource.
 
 # permission
 
