@@ -39,11 +39,11 @@ Read more about the [URL Permission format](https://github.com/nielskrijger/url-
 
 An URL Permission consists of three components:
 
-1. **Path**: identifies which resource the permission applies to. Can be an absolute pathname (starting with `/`) or an entire url with domain name and url scheme.
+1. **Path**. The path identifies which resource the permission applies to. Paths can be absolute pathnames (starting with `/`) or an entire url with domain name and url scheme.
 
     Paths may include wildcards `_` (single character) and `*` (any or zero characters).
 
-    For example, to read the new article comment accessible at `https://api.example.com/articles/article-1/comments/comment-1` you might use one of the following URL permissions:
+    For example, to read a user comment accessible at `https://api.example.com/articles/article-1/comments/comment-1` you might use one of the following URL permissions:
 
     ```
     /articles/*:read
@@ -52,7 +52,7 @@ An URL Permission consists of three components:
     https://api.example.com/articles/article-1/comments/comment-1:read
     ```
 
-2. **Parameters**: parameters are optional attribute-based restrictions and are  very similar to url query parameters.
+2. **Parameters**. Parameters are optional attribute-based restrictions and are  very similar to url query parameters.
 
     For example, the permission `/articles:read` grants read access to all articles whereas:
 
@@ -70,7 +70,7 @@ An URL Permission consists of three components:
 
     ... which allows read access of published articles of both author `user-1` and `user-2`.
 
-3. **Privileges**: the privileges allowed on the resource. You can either specify these as a comma-separated set of action names, their identifiers or an alias (e.g. `create,read,update,delete`, `crud` or `all` are equivalent). Privileges are fully customizable. These default are:
+3. **Privileges**. Privileges specify which operations are allowed on the resource. You can either specify these as a comma-separated set of names, a string of identifiers, an alias, or a combination thereof (e.g. `create,read,update,delete`, `crud` and `all` are equivalent). Privileges are fully customizable. The default are:
 
     Identifier | Name      | Description
     -----------|-----------|-----------------
