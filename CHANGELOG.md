@@ -9,6 +9,11 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Refactored test files setup
 - Refactor `export default permission` to `export { permission }`
+- Changed "slow" test indicator from default to 10ms
+
+### Added
+- `permissions()` function and companion class `URLPermissions` which evaluates a collection of permissions
+- `permission().clone()` method
 
 ## [0.4.0] - 2016-12-30
 ### Fixed
