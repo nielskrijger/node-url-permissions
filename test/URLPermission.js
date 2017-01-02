@@ -6,7 +6,9 @@ beforeEach(() => {
   permission.config(false);
 });
 
-describe('permission', () => {
+describe('permission', function() {
+  this.slow(10);
+
   describe('constructor()', () => {
     it('should throw error when URL permission is not a string', () => {
       expect((() => permission(false)))

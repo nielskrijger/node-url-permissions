@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import { permission } from '../src/index';
 
-describe('validate(...)', () => {
+describe('validate(...)', function() {
+  this.slow(10);
+
   it('should return true when string is valid', () => {
     expect(permission.validate('/articles?author=1,2:all,m')).to.equal(true);
     expect(permission.validate('https://examp.le/articles?author=1,2:all,m')).to.equal(true);

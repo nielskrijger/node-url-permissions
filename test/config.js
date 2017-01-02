@@ -6,7 +6,9 @@ beforeEach(() => {
   permission.config(false);
 });
 
-describe('config(...)', () => {
+describe('config(...)', function() {
+  this.slow(10);
+  
   describe('grant privileges', () => {
     it('should throw an error when grant privileges is not an array', () => {
       const func = () => permission.config({
