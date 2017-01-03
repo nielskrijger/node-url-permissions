@@ -89,9 +89,9 @@ An URL Permission consists of three components:
     `manager` | `crudm`   | Allows user to perform CRUD operations and set permissions of users without `manager` or `owner` permissions.
     `owner`   | `cruds`   | Allows all possible operations on resource.
 
-# permission()
+# permission(perm)
 
-The methods in this section process and evaluate a single permission string. To evaluate a collection of permissions scroll down until you hit the `permissions(...)` section (plural).
+The `permission(perm)` function enables a variety of evaluation and transformation methods. To evaluate a collection of permissions scroll down until you hit the `permissions(perms[])` section.
 
 ## allows(searchPermissions[])
 
@@ -334,21 +334,24 @@ permission('/articles:z').mayGrant('/articles:a', ['/articles:z']); // true
 
 Notice the last example where `z` may grant a permission to a grantee with `z`, whereas an `y` may not grant the same permission to another `y`. We'll leave it to you to figure out why.
 
-# permissions()
+# permissions(perms[])
 
-The `permissions()` function enables verifying a collection of permissions.
+The `permissions(perms[])` function enables verifying a collection of permissions.
+
+Valid `perms` are permission strings, `permission()` objects, or arrays of either of those.
 
 ## allows(searchPermissions[])
 
-Returns `true` if all `searchPermissions` are matched by any of the `permissions`, otherwise returns `false`.
+Returns `true` if all `searchPermissions` are matched by any single or a combination of `permissions`, otherwise returns `false`.
+
+This method intelligently handles combination and products of parameter values and privileges.
 
 ```js
 import { permissions } from 'url-permissions';
 
-// Basic examples
 permissions('/articles:r', '/articles:u').allows('/articles:ru'); // true
 permissions('/articles/*:r', '/articles/*:u').allows('/articles/article-1:ru'); // true
-permissions('/articles?author=user1:r', '/articles?author=user2:r').allows('/articles?author=user1,user2:r'); // false
+permissions('/articles?author=user1:r', '/articles?author=user2:r').allows('/articles?author=user1,user2:r'); // true
 permissions('/articles?author=user1:r', '/articles?author=user2:u').allows('/articles?author=user1,user2:ru'); // false
 ```
 
@@ -371,7 +374,6 @@ Similarly, multiple parameters and multiple values in a single permission are eq
 ```js
 permissions('/articles?author=user-1:r', '/articles?author=user-2&status=published:r')
   .allows('/articles?author=user-1,user-2&status=published,draft:r'); // false
-
 
 // ... which is equivalent to:
 permissions('/articles?author=user-1:r', '/articles?author=user-2&status=published:r')
