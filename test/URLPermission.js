@@ -188,6 +188,7 @@ describe('permission', function() {
     it('should match multiple permissions', () => {
       expect(permission('/articles:r').allows('/articles:read', '/articles:u')).to.equal(false);
       expect(permission('/articles:owner').allows('/articles:read', '/articles:u')).to.equal(true);
+      expect(permission('/articles:owner').allows(['/articles:read', '/articles:u'])).to.equal(true);
     });
   });
 
