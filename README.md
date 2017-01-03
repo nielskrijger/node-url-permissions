@@ -68,7 +68,7 @@ An URL Permission consists of three components:
     /articles?author=user-1,user-2&status=published:r
     ```
 
-    ... which allows read access of published articles of both author `user-1` and `user-2`.
+    ... which allows read access of published articles whose author is `user-1` or `user-2` (comma-separated values are evaluated as OR).
 
 3. **Privileges**. Privileges specify which operations are allowed on the resource. You can either specify these as a comma-separated set of names, a string of identifiers, an alias, or a combination thereof (e.g. `create,read,update,delete`, `crud` and `all` are equivalent). Privileges are fully customizable. The default are:
 
@@ -89,11 +89,13 @@ An URL Permission consists of three components:
     `manager` | `crudm`   | Allows user to perform CRUD operations and set permissions of users without `manager` or `owner` permissions.
     `owner`   | `cruds`   | Allows all possible operations on resource.
 
-# permission
+# permission()
 
-## allows(...searchPermissions)
+The methods in this section process and evaluate a single permission string. To evaluate a collection of permissions scroll down until you hit the `permissions(...)` section (plural).
 
-Returns `true` if at least one `searchPermission` matches the constraints specified in `permission`, otherwise returns `false`.
+## allows(searchPermissions[])
+
+Returns `true` if all `searchPermissions` are matched by the permission, otherwise returns `false`.
 
 ```js
 import { permission } from 'url-permissions';
@@ -225,8 +227,7 @@ permission('/articles:super').mayRevoke('/articles/article-1:read', ['/articles:
 
 ## toObject()
 
-Returns an object representation of an URL permission containing three
-properties: `url`, `attributes` and `actions`.
+Returns an object representation of an URL permission containing three properties: `url`, `attributes` and `actions`.
 
 ```js
 import { permission } from 'url-permissions';
@@ -240,6 +241,17 @@ permission('/articles/*?author=user-1,user-2&flag=true:all').toObject()
 //   },
 //   privileges: ['r', 'c', 'u', 'd'],
 // }
+```
+
+## toString()
+
+Returns a permission string of an URL Permission. Privileges are always represented by privilege identifiers.
+
+```js
+import { permission } from 'url-permissions';
+
+permission('/articles/*?author=user-1:all').toString()
+// '/articles/*?author=user-1:crud'
 ```
 
 ## clone()
@@ -268,7 +280,7 @@ permission.validate('?author=user-1:c'); // false, no path
 
 ## config(options)
 
-a static method to change global config options. Changing global config doesn't affect existing instances.
+Static method to change global config options. Changing global config doesn't affect existing instances.
 
 ```js
 import { permission } from 'url-permissions';
@@ -322,6 +334,51 @@ permission('/articles:z').mayGrant('/articles:a', ['/articles:z']); // true
 
 Notice the last example where `z` may grant a permission to a grantee with `z`, whereas an `y` may not grant the same permission to another `y`. We'll leave it to you to figure out why.
 
-# permissions
+# permissions()
 
-The `permissions(...)` function is a collection of permissions that simplify verifying a collection of permissions.
+The `permissions()` function enables verifying a collection of permissions.
+
+## allows(searchPermissions[])
+
+Returns `true` if all `searchPermissions` are matched by any of the `permissions`, otherwise returns `false`.
+
+```js
+import { permissions } from 'url-permissions';
+
+// Basic examples
+permissions('/articles:r', '/articles:u').allows('/articles:ru'); // true
+permissions('/articles/*:r', '/articles/*:u').allows('/articles/article-1:ru'); // true
+permissions('/articles?author=user1:r', '/articles?author=user2:r').allows('/articles?author=user1,user2:r'); // false
+permissions('/articles?author=user1:r', '/articles?author=user2:u').allows('/articles?author=user1,user2:ru'); // false
+```
+
+When using comma-separated parameter values each value should be considered a separate permission that must be allowed:
+
+```js
+permissions('/articles?author=user-1:r', '/articles?author=user-2:r')
+  .allows('/articles?author=user-1,user-2&status=published:r'); // true
+
+// ... which is equivalent to:
+permissions('/articles?author=user-1:r', '/articles?author=user-2:r')
+  .allows([
+    '/articles?author=user-1&status=published:r',
+    '/articles?author=user-2&status=published:r',
+  ]);
+```
+
+Similarly, multiple parameters and multiple values require
+
+```js
+permissions('/articles?author=user-1:r', '/articles?author=user-2&status=published:r')
+  .allows('/articles?author=user-1,user-2&status=published,draft:r'); // false
+
+
+// ... which is equivalent to:
+permissions('/articles?author=user-1:r', '/articles?author=user-2&status=published:r')
+  .allows([
+    '/articles?author=user-1&status=published:r',
+    '/articles?author=user-1&status=draft:r',
+    '/articles?author=user-2&status=published:r',
+    '/articles?author=user-2&status=draft:r', // This does not match
+  ]);
+```
