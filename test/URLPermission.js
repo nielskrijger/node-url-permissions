@@ -138,6 +138,12 @@ describe('permission', function() {
   });
 
   describe('allows()', () => {
+    it('should throw an error when permission is not a valid URL Permission string or object', () => {
+      const perm = permission('/articles:r');
+      const func = () => perm.allows('test');
+      expect(func).to.throw('Permission must contain at least 1 privilege delimited by ":"');
+    });
+
     it('should allow basic permissions', () => {
       expect(permission('/articles:r').allows('/articles:read')).to.equal(true);
       expect(permission('/articles:read,update').allows('/articles:r')).to.equal(true);

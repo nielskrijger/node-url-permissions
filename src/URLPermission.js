@@ -235,15 +235,8 @@ export default class URLPermission {
    * Throws an error when permission string is invalid.
    */
   allows(...permissions) {
-    for (let i = 0; i < permissions.length; i += 1) {
-      if (_.isString(permissions[i])) {
-        permissions[i] = new URLPermission(permissions[i]);
-      } else if (!(permissions[i] instanceof URLPermission)) {
-        throw new Error('Parameters must be an URLPermission object or a permission string');
-      }
-    }
-
-    return _.every(permissions, e => this.matchUrl(e) && this.matchPrivileges(e.privileges()));
+    const perms = _.flatten(permissions).map(e => new URLPermission(e));
+    return _.every(perms, e => this.matchUrl(e) && this.matchPrivileges(e.privileges()));
   }
 
   /**
