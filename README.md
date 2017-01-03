@@ -366,7 +366,7 @@ permissions('/articles?author=user-1:r', '/articles?author=user-2:r')
   ]);
 ```
 
-Similarly, multiple parameters and multiple values require
+Similarly, multiple parameters and multiple values in a single permission are equivalent to the combination of all possible parameter values:
 
 ```js
 permissions('/articles?author=user-1:r', '/articles?author=user-2&status=published:r')
