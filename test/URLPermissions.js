@@ -27,17 +27,26 @@ describe('permissions', function() {
       expect(permissions('/articles?author=user1:r').allows('/articles?author=user1:r')).to.equal(true);
       expect(permissions('/articles?author=user1:r', '/articles?author=user2:u').allows('/articles?author=user1,user2:ru')).to.equal(false);
       expect(permissions('/articles?author=user1:ru').allows('/articles?author=user1:r', '/articles?author=user1:u')).to.equal(true);
-      expect(permissions('/articles?author=user1,user2:ru').allows('/articles?author=user1:r', '/articles?author=user2:u')).to.equal(true);
+      expect(permissions('/articles?author=user1,user2:ru').allows('/articles?author=user1,user2:r', '/articles?author=user2:u')).to.equal(true);
     });
 
     it('should allow wildcards', () => {
-      // TODO
+      expect(permissions('/articles/*:r', '/articles/*:u').allows('/articles/article-1:ru')).to.equal(true);
+      expect(permissions('/articles/*:r', '/articles:u').allows('/articles/article-1:ru')).to.equal(false);
     });
 
     it('should match multiple permissions', () => {
+      expect(permissions('/articles:r', '/articles:u').allows('/articles:ru')).to.equal(true);
+      expect(permissions('/articles:r', '/articles:u').allows(['/articles:r', '/articles:u'])).to.equal(true);
       expect(permissions('/articles?author=user1:ru', '/redundant:u').allows('/articles?author=user1:ru')).to.equal(true);
-      expect(permissions('/articles?var1=foo1:r', '/articles?var2=foo3,foo4:r')
-        .allows('/articles?var1=foo1,foo2&var2=foo3,foo4&var3=foo5,foo6:r')).to.equal(true);
+      expect(permissions('/articles?author=user-1:r', '/articles?author=user-2&status=published:r')
+        .allows('/articles?author=user-1,user-2&status=published:r')).to.equal(true);
+      expect(permissions('/articles?author=user-1:r', '/articles?author=user-2&status=published:r')
+        .allows('/articles?author=user-1,user-2&status=draft,published:r')).to.equal(false);
+      expect(permissions('/articles?var1=A:r', '/articles?var2=C,D:r')
+        .allows('/articles?var1=A,B&var2=C,D&var3=E,F:r')).to.equal(true);
+      expect(permissions('/articles?var1=A:r', '/articles?var2=G:r')
+        .allows('/articles?var1=A,B&var2=C,D&var3=E,F:r')).to.equal(false);
     });
   });
 });
