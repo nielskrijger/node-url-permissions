@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 - Refactor `export default permission` to `export { permission }`
 - Changed "slow" test indicator from default to 10ms
 - `permission()` constructor now accepts an URLPermission object and clones it
+- `mayRevoke()` is now yet again an alias of `mayGrant()`.
+- `mayGrant()` no longer allows users with higher privileges to grant permissions.
 
 ### Added
 - `permissions()` function and companion class `URLPermissions` which evaluates a collection of permissions

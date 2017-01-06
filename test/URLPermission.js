@@ -218,10 +218,12 @@ describe('permission', function() {
     it('should not allow grant when permission has lesser or equal grant privileges', () => {
       expect(permission('/articles:cmr').mayGrant('/articles:uds')).to.equal(false);
       expect(permission('/articles:m').mayGrant('/articles:m')).to.equal(false);
+      expect(permission('/articles:s').mayGrant('/articles:m')).to.equal(true);
     });
 
-    it('should allow grant if user permission has higher grant', () => {
-      expect(permission('/articles:m').mayGrant('/articles:r', ['/articles:r', '/articles:m'])).to.equal(true);
+    it('should not allow grant if user has permission with higher grant', () => {
+      expect(permission('/articles:m').mayGrant('/articles:r', ['/articles:r', '/articles:s'])).to.equal(false);
+      expect(permission('/articles:m').mayGrant('/articles:r', ['/articles:r', '/articles:m'])).to.equal(false);
     });
   });
 
@@ -254,6 +256,8 @@ describe('permission', function() {
     });
 
     it('should not allow revoke if user permission has higher grant', () => {
+      expect(permission('/articles?author=user-2:manage')
+        .mayRevoke('/articles?author=user-2:r', ['/articles:owner'])).to.equal(false);
       expect(permission('/articles:m').mayRevoke('/articles:r', ['/articles:r', '/articles:m'])).to.equal(false);
     });
   });

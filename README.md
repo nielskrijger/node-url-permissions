@@ -191,7 +191,10 @@ In the grant process we distinguish two roles:
 - *grantor*: the person granting or revoking a permission.
 - *grantee*: the person receiving or losing a permission.
 
-To grant a permission the grantor must have "manage" or "super" privileges. Both privileges allow granting all other privileges to anyone else. The "manage" does not allow granting a "manage" or "super" privilege. The "super" privilege allows granting permissions to anyone.
+To grant a permission the grantor must have **manage** an/or **super** privilege.
+
+- **manage** allows granting or revoking **crud** privileges from anyone without **manage** and **super** privilege.
+- **super** allows granting and revoking permissions from anyone.
 
 The grantor/grantee privileges can be customized using `permission.config()`.
 
@@ -212,7 +215,7 @@ permission('/articles:super').mayGrant('/articles/article-1:read', ['/articles:s
 
 Returns `true` if permission allows revoking `permission` to grantee.
 
-Its behaviour is similar to that of `mayGrant()` with the exception a "manage" privilege does not allow revoking any basic privilege ("crud") from anyone with a "manage" or "super" privilege.
+
 
 ```js
 import { permission } from 'url-permissions';

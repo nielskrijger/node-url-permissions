@@ -269,9 +269,6 @@ export default class URLPermission {
     const newPermission = new URLPermission(permission);
     if (this.grantPrivileges().length === 0 || !this.matchUrl(newPermission)) return false;
 
-    // If all new privileges are non grants allow any grantor to add them
-    if (newPermission.grantPrivileges().length === 0) return true;
-
     // All other grantPrivileges must be covered by our grantPrivileges
     return this._areLesserPrivileges(newPermission.grantPrivileges(), granteePermissions);
   }
@@ -280,11 +277,7 @@ export default class URLPermission {
    * Returns `true` if permission allows revoking `permission` from grantee.
    */
   mayRevoke(permission, granteePermissions = []) {
-    const newPermission = new URLPermission(permission);
-    if (this.grantPrivileges().length === 0 || !this.matchUrl(newPermission)) return false;
-
-    // All other grantPrivileges must be covered by our grantPrivileges
-    return this._areLesserPrivileges(newPermission.grantPrivileges(), granteePermissions);
+    return this.mayGrant(permission, granteePermissions);
   }
 
   /**
@@ -294,7 +287,7 @@ export default class URLPermission {
   _areLesserPrivileges(grantPrivileges, granteePermissions) {
     const allGrantPrivs = granteePermissions
       .map(e => new URLPermission(e))
-      .filter(e => this.matchUrl(e))
+      .filter(e => e.matchUrl(this))
       .map(e => e.grantPrivileges())
       .reduce((a, b) => a.concat(b), [])
       .concat(grantPrivileges);
