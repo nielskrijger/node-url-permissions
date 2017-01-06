@@ -394,3 +394,31 @@ permissions('/articles?author=user-1:r', '/articles?author=user-2&status=publish
     '/articles?author=user-2&status=draft:r', // This does not match
   ]);
 ```
+
+## mayGrant(newPermission [, granteePermissions])
+
+Returns `true` if any or a combination of this collection's permissions allow granting `newPermission` to grantee.
+
+For a better understanding of how grants work, see `permission().mayGrant(...)`.
+
+```js
+import { permissions } from 'url-permissions';
+
+permission('/articles:r', '/articles:m').mayGrant('/articles:read'); // true
+
+permissions('/articles?author=user-1:owner', '/articles?author=user-2:owner')
+  .mayGrant('/articles?author=user-1,user-2:read', ['/articles:read']); // true
+
+permissions('/articles?author=user-1:manage', '/articles?author=user-2:manage')
+  .mayGrant('/articles?author=user-1,user-2:read', ['/articles:owner']); // false
+```
+
+## mayRevoke(removePermission [, granteePermissions])
+
+An alias of `permissions().mayGrant()`. Returns `true` if any or a combination of this collection's permissions allow revoking `removePermission` from grantee.
+
+## permissions([ permissions ])
+
+Gets or sets permissions.
+
+`permissions` can be either a string or an array of permissions.

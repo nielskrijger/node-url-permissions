@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 - `mayGrant()` no longer allows users with higher privileges to grant permissions.
 
 ### Added
-- `permissions()` function and companion class `URLPermissions` which evaluates a collection of permissions
+- `permissions()` function and companion class `URLPermissions` evaluate a collection of permissions
 - `permission().clone()` method
 
 ## [0.4.0] - 2016-12-30

@@ -54,4 +54,42 @@ describe('permissions', function() {
         .allows('/articles?var1=A,B&var2=C,D&var3=E,F:r')).to.equal(false);
     });
   });
+
+  describe('mayGrant()', () => {
+    it('should throw error when URL permission is invalid', () => {
+      const func = () => permissions('/articles:r').mayGrant('/articles?author=user1');
+      expect(func).to.throw('Permission must contain at least 1 privilege delimited by ":"');
+    });
+
+    it('should grant basic permissions', () => {
+      expect(permissions('/articles:r', '/articles:m').mayGrant('/articles:ru')).to.equal(true);
+      expect(permissions('/articles:r', '/articles:u').mayGrant('/articles:ru')).to.equal(false);
+    });
+
+    it('should consider grantee permissions', () => {
+      expect(permissions('/articles?author=user-1:owner', '/articles?author=user-2:owner')
+        .mayGrant('/articles?author=user-1,user-2:read', ['/articles:read'])).to.equal(true);
+      expect(permissions('/articles?author=user-1:manage', '/articles?author=user-2:manage')
+        .mayGrant('/articles?author=user-1,user-2:read', ['/articles:owner'])).to.equal(false);
+    });
+  });
+
+  describe('mayRevoke()', () => {
+    it('should throw error when URL permission is invalid', () => {
+      const func = () => permissions('/articles:r').mayGrant('/articles?author=user1');
+      expect(func).to.throw('Permission must contain at least 1 privilege delimited by ":"');
+    });
+
+    it('should grant basic permissions', () => {
+      expect(permissions('/articles:r', '/articles:m').mayGrant('/articles:ru')).to.equal(true);
+      expect(permissions('/articles:r', '/articles:u').mayGrant('/articles:ru')).to.equal(false);
+    });
+    
+    it('should consider grantee permissions', () => {
+      expect(permissions('/articles?author=user-1:owner', '/articles?author=user-2:owner')
+        .mayRevoke('/articles?author=user-1,user-2:read', ['/articles:read'])).to.equal(true);
+      expect(permissions('/articles?author=user-1:manage', '/articles?author=user-2:manage')
+        .mayRevoke('/articles?author=user-1,user-2:read', ['/articles:owner'])).to.equal(false);
+    });
+  });
 });

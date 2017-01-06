@@ -53,21 +53,53 @@ export default class URLPermissions {
   }
 
   /**
+   * Returns `true` if any or a combination of this collection's permissions
+   * allow granting `newPermission` to grantee.
+   */
+   mayGrant(newPermission, granteePermissions = []) {
+     return this._mayGrantOrRevoke('mayGrant', newPermission, granteePermissions);
+   }
+
+  /**
+   * Returns `true` if any or a combination of this collection's permissions
+   * allow revoking `permission` from grantee.
+   */
+   mayRevoke(permission, granteePermissions = []) {
+     return this._mayGrantOrRevoke('mayRevoke', permission, granteePermissions);
+   }
+
+   /**
+    * This private function contains the common logic of `mayGrant` and
+    * `mayRevoke`. Specify `functionName` either `mayGrant` or `mayRevoke`.
+    */
+   _mayGrantOrRevoke(functionName, newPermission, granteePermissions = []) {
+     const newPerms = this._unwindParameters(newPermission)
+      .map(this._unwindPrivileges)
+      .reduce((a, b) => a.concat(b), []);
+     const ourPerms = this.permissions();
+     return _.every(newPerms, (newPerm) => {
+       return _.some(ourPerms, (ourPerm) => ourPerm[functionName](newPerm, granteePermissions));
+     });
+   }
+
+  /**
    * Returns an array with permissions for each and every parameter value.
    *
    * For example:
    * ```
-   * const result = _unwindPermission('/articles?var1=foo1,foo2&var2=foo3,foo4:ru');
-   * console.log(result[0].toString()); // "/articles?var1=foo1&var2=foo3"
-   * console.log(result[1].toString()); // "/articles?var1=foo1&var2=foo4"
-   * console.log(result[2].toString()); // "/articles?var1=foo2&var2=foo3"
-   * console.log(result[3].toString()); // "/articles?var1=foo2&var2=foo4"
+   * _unwindPermission('/articles?var1=foo1,foo2&var2=foo3,foo4:ru');
+   * // [
+   * //   "/articles?var1=foo1&var2=foo3:ru",
+   * //   "/articles?var1=foo1&var2=foo4:ru",
+   * //   "/articles?var1=foo2&var2=foo3:ru",
+   * //   "/articles?var1=foo2&var2=foo4:ru",
+   * // ]
    * ```
    */
   _unwindParameters(permission) {
     const perm = new URLPermission(permission);
     const params = perm.parameters();
-    if (!params) return perm; // Simply return, nothing to unwind
+    if (!params) return [perm]; // Simply return, nothing to unwind
 
     // Recursive function that returns an array with one object for each unique
     // path in the `params` object.
@@ -92,5 +124,23 @@ export default class URLPermissions {
     return unwind(Object.keys(params), 0).map((unwindedParams) => {
       return perm.clone().parameters(unwindedParams);
     });
+  }
+
+  /**
+   * Generates a new permission for each privilege.
+   *
+   * For example:
+   * ```
+   * _unwindPermission('/articles:all');
+   * // [
+   * //   "/articles:c",
+   * //   "/articles:r",
+   * //   "/articles:u",
+   * //   "/articles:d",
+   * // ]
+   * ```
+   */
+  _unwindPrivileges(perm) {
+    return perm.privileges().map(e => perm.clone().privileges(e));
   }
 }
