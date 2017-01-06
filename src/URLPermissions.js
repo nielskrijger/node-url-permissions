@@ -9,9 +9,7 @@ export default class URLPermissions {
    * Creates new URLPermission instance based on a permission string.
    */
   constructor(...perms) {
-    this._permissions = _.flatten(perms).map(e => {
-      return new URLPermission(e);
-    });
+    this._permissions = _.flatten(perms).map(e => new URLPermission(e));
   }
 
   /**
@@ -19,9 +17,7 @@ export default class URLPermissions {
    */
   permissions(permissions) {
     if (permissions !== undefined) {
-      this._permissions = _.flatten(perms).map(e => {
-        return new URLPermission(e);
-      });
+      this._permissions = _.flatten(perms).map(e => new URLPermission(e));
       return this;
     }
     return this._permissions;

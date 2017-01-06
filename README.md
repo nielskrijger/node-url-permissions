@@ -344,15 +344,15 @@ permission('/articles:z').mayGrant('/articles:a', ['/articles:z']); // true
 
 Notice the last example where `z` may grant a permission to a grantee with `z`, whereas an `y` may not grant the same permission to another `y`. We'll leave it to you to figure out why.
 
-# permissions(perms[])
+# permissions(perms)
 
-The `permissions(perms[])` function enables verifying a collection of permissions.
+The `permissions(perms)` function enables verifying a collection of permissions.
 
 Valid `perms` are permission strings, `permission()` objects, or arrays of either of those.
 
 ## allows(searchPermissions[])
 
-Returns `true` if all `searchPermissions` are matched by any single or a combination of `permissions`, otherwise returns `false`.
+Returns `true` if all `searchPermissions` are matched by any single or a combination of `permissions`.
 
 This method intelligently handles combination and products of parameter values and privileges.
 

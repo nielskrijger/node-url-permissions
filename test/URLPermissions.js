@@ -17,6 +17,11 @@ describe('permissions', function() {
   });
 
   describe('allows()', () => {
+    it('should throw error when URL permission is invalid', () => {
+      const func = () => permissions('/articles:r').allows('/articles?author=user1');
+      expect(func).to.throw('Permission must contain at least 1 privilege delimited by ":"');
+    });
+
     it('should allow basic permissions', () => {
       expect(permissions('/articles:r', '/articles:u').allows('/articles:ru')).to.equal(true);
     });
