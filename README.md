@@ -265,6 +265,13 @@ a.privileges(['u']);
 b.privileges(); // ['r']
 ```
 
+Alternatively you can do this:
+
+```js
+const a = permission('/articles:r');
+const b = permission(a); // Clone a
+```
+
 ## validate()
 
 Static method to checks if url permission string is valid.

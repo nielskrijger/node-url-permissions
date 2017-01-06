@@ -12,7 +12,7 @@ describe('permission', function() {
   describe('constructor()', () => {
     it('should throw error when URL permission is not a string', () => {
       expect((() => permission(false)))
-        .to.throw('Permission must be a string');
+        .to.throw('Permission must be a string or URLPermission instance');
     });
 
     it('should throw error when URL permission does not have privileges', () => {

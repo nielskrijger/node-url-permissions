@@ -9,14 +9,27 @@ export default class URLPermission {
   /**
    * Creates new URLPermission instance based on a permission string.
    */
-  constructor(permissionString) {
-    this._config = _.cloneDeep(config());
-    const props = this._parse(permissionString);
-    Object.assign(this, {
-      _path: props.path,
-      _parameters: props.parameters,
-      _privileges: props.privileges,
-    });
+  constructor(permission) {
+    if (_.isString(permission)) {
+      // Parse permission string using global config options
+      this._config = _.cloneDeep(config());
+      const props = this._parse(permission);
+      Object.assign(this, {
+        _path: props.path,
+        _parameters: props.parameters,
+        _privileges: props.privileges,
+      });
+    } else if (permission instanceof URLPermission) {
+      // Copy all private properties
+      Object.assign(this, {
+        _config: _.cloneDeep(permission._config),
+        _path: permission.path(),
+        _parameters: _.cloneDeep(permission.parameters()),
+        _privileges: _.cloneDeep(permission.privileges()),
+      });
+    } else {
+      throw new Error('Permission must be a string or URLPermission instance');
+    }
   }
 
   /**
@@ -305,7 +318,7 @@ export default class URLPermission {
    * Returns a clone of this URLPermission.
    */
   clone() {
-    return new URLPermission(this.toString());
+    return new URLPermission(this);
   }
 
   /**
