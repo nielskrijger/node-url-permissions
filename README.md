@@ -399,7 +399,7 @@ permissions('/articles?author=user-1:r', '/articles?author=user-2&status=publish
 
 Returns `true` if any or a combination of this collection's permissions allow granting `newPermission` to grantee.
 
-For a better understanding of how grants work, see `permission().mayGrant(...)`.
+For a better understanding of how granting work, see `permission().mayGrant(...)`.
 
 ```js
 import { permissions } from 'url-permissions';
@@ -415,7 +415,9 @@ permissions('/articles?author=user-1:manage', '/articles?author=user-2:manage')
 
 ## mayRevoke(removePermission [, granteePermissions])
 
-An alias of `permissions().mayGrant()`. Returns `true` if any or a combination of this collection's permissions allow revoking `removePermission` from grantee.
+An alias of `permissions().mayGrant()`.
+
+Returns `true` if any or a combination of this collection's permissions allow revoking `removePermission` from grantee.
 
 ## permissions([ permissions ])
 
