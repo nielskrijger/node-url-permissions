@@ -94,6 +94,48 @@ export default class URLPermission {
   }
 
   /**
+   * Returns `true` if permission has specified privilege.
+   */
+  hasPrivilege(privilege) {
+    if (_.isArray(privilege)) {
+      return _.every(privilege, (e) => this.hasPrivilege(e));
+    }
+
+    const privsInverted = _.invert(this._config.privileges);
+    return _.every(privilege.split(','), (privilege) => {
+      // Is privilege name, return its abbreviation
+      if (privsInverted[privilege]) {
+        return this._privileges.includes(privsInverted[privilege]);
+      }
+
+      let abbr = privilege;
+
+      // An alias always overrides any abreviations
+      if (this._config.aliases[privilege]) {
+        abbr = this._config.aliases[privilege].join('');
+      }
+
+      // Parse abbreviations
+      for (let i = 0; i < abbr.length; i += 1) {
+        if (!this._config.privileges[abbr.charAt(i)]) {
+          throw new Error(`Privilege '${abbr.charAt(i)}' does not exist`);
+        }
+        if (!this._privileges.includes(abbr.charAt(i))) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }
+
+  /**
+   * Returns `true` if permission has specified privileges.
+   */
+  hasPrivileges(privileges) {
+    return this.hasPrivilege(privileges);
+  }
+
+  /**
    * Returns the privileges which enable granting permissions.
    */
   grantPrivileges() {

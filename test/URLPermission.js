@@ -130,6 +130,47 @@ describe('permission', function() {
     });
   });
 
+  describe('hasPrivilege', () => {
+    it('should verify privilege identifiers', () => {
+      expect(permission('/articles:ru').hasPrivilege('ru')).to.equal(true);
+      expect(permission('/articles:ru').hasPrivilege(['r', 'u'])).to.equal(true);
+      expect(permission('/articles:ru').hasPrivilege('ru,d')).to.equal(false);
+    });
+
+    it('should verify privilege names', () => {
+      expect(permission('/articles:ru').hasPrivilege('read,update')).to.equal(true);
+      expect(permission('/articles:ru').hasPrivilege(['read', 'update'])).to.equal(true);
+      expect(permission('/articles:ru').hasPrivilege('read,delete')).to.equal(false);
+    });
+
+    it('should verify alias privileges', () => {
+      expect(permission('/articles:owner').hasPrivilege('all,owner')).to.equal(true);
+      expect(permission('/articles:owner').hasPrivilege(['all', 'owner'])).to.equal(true);
+      expect(permission('/articles:all').hasPrivilege('manager')).to.equal(false);
+    });
+
+    it('should verify a combination of various privilege names', () => {
+      expect(permission('/articles:owner').hasPrivilege('cu,delete,owner')).to.equal(true);
+      expect(permission('/articles:owner').hasPrivilege(['cu,delete', 'owner'])).to.equal(true);
+      expect(permission('/articles:all').hasPrivilege('cu,delete,owner')).to.equal(false);
+    });
+
+    it('should throw an error when privilege does not exist', () => {
+      const perm = permission('/articles:r');
+      const func = () => perm.hasPrivilege('read,test');
+      expect(func).to.throw('Privilege \'t\' does not exist');
+    });
+  });
+
+
+  describe('hasPrivileges', () => {
+    it('should be an alias of `hasPrivilege()`', () => {
+      expect(permission('/articles:ru').hasPrivileges('ru')).to.equal(true);
+      expect(permission('/articles:crud').hasPrivileges(['r', 'read', 'all', 'update'])).to.equal(true);
+      expect(permission('/articles:ru').hasPrivileges('ru,d')).to.equal(false);
+    });
+  });
+
   describe('grantPrivileges()', () => {
     it('should return privileges that grant permissions', () => {
       const perm = permission('/articles:all,m,s');
@@ -177,7 +218,6 @@ describe('permission', function() {
       expect(permission('/articles:r').allows('/articles/*:r')).to.equal(false);
       expect(permission('/articles/*:r').allows('/articles/article-1:r')).to.equal(true);
       expect(permission('/articles/:r').allows('/articles/article-1/comments:r')).to.equal(false);
-      expect(permission('/articles/article-1/comments:r').allows('/articles/**:r')).to.equal(true);
       expect(permission('/articles/article-1/comments:r').allows('/articles/*:r')).to.equal(false);
       expect(permission('/articles/article-1/comments:r').allows('/articles*:r')).to.equal(false);
       expect(permission('/articles/article-1/comments/comment-1:r').allows('/articles/**/comment-1:r')).to.equal(true);

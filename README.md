@@ -163,7 +163,7 @@ Gets or sets the permission privileges.
 `privileges` can be either a string or an array of privileges. Privileges are identified either by a one-character identifier, a privilege name or an alias.
 
 ```js
-const perm = permission('/articles?attr1=test:r');
+const perm = permission('/articles:r');
 
 perm.privileges(); // ['r']
 perm.privileges('all,m');
@@ -171,6 +171,27 @@ perm.privileges(); // ['c', 'r', 'u', 'd', 'm']
 perm.privileges(['all', 'm', 'super']);
 perm.privileges(); // ['c', 'r', 'u', 'd', 'm', 's']
 ```
+
+## hasPrivilege(privilege)
+
+Return `true` when permission has specified privilege(s).
+
+`privileges` can be either a string or an array of privileges. Privileges are identified either by a one-character identifier, a privilege name or an alias.
+
+```js
+const perm = permission('/articles:crud');
+
+perm.hasPrivilege('r'); // true
+perm.hasPrivilege(['read', 'c', 'u']); // true
+perm.hasPrivilege('all'); // true
+perm.hasPrivilege('all,read,c'); // true
+perm.hasPrivilege('super'); // false
+perm.hasPrivilege('unknown'); // throws error
+```
+
+## hasPrivileges()
+
+Alias of `hasPrivilege()`.
 
 ## grantPrivileges()
 
