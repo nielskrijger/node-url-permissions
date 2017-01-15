@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import globToRegex from './globToRegex';
 import config from './config';
+import { isNumeric } from './util';
 
 /**
  * Models a permission string.
@@ -85,8 +86,10 @@ export default class URLPermission {
         this._privileges = this._parsePrivileges(privileges.join(','));
       } else if (_.isString(privileges)) {
         this._privileges = this._parsePrivileges(privileges);
+      } else if (_.isNumber(privileges)) {
+        this._privileges = privileges;
       } else {
-        throw new Error('Privileges must be an array or string');
+        throw new Error('Privileges must be an array, string or number');
       }
       return this;
     }
@@ -98,34 +101,26 @@ export default class URLPermission {
    */
   hasPrivilege(privilege) {
     if (_.isArray(privilege)) {
-      return _.every(privilege, (e) => this.hasPrivilege(e));
+      return _.every(privilege, e => this.hasPrivilege(e));
     }
 
-    const privsInverted = _.invert(this._config.privileges);
-    return _.every(privilege.split(','), (privilege) => {
-      // Is privilege name, return its abbreviation
-      if (privsInverted[privilege]) {
-        return this._privileges.includes(privsInverted[privilege]);
-      }
+    // Privilege parameter is itself a bitmask
+    const ourBitmask = this.privileges();
+    if (_.isNumber(privilege)) {
+      return (privilege <= ourBitmask) && (ourBitmask & privilege) > 0;
+    }
 
-      let abbr = privilege;
+    // Privilege is a string
+    if (_.isString(privilege)) {
+      return _.every(privilege.split(','), (privilege) => {
+        const bitmask = this._parsePrivileges(privilege);
 
-      // An alias always overrides any abreviations
-      if (this._config.aliases[privilege]) {
-        abbr = this._config.aliases[privilege].join('');
-      }
+        // Returns true if bitmask is captured in our bitmask
+        return (bitmask <= ourBitmask) && (ourBitmask & bitmask) > 0;
+      });
+    }
 
-      // Parse abbreviations
-      for (let i = 0; i < abbr.length; i += 1) {
-        if (!this._config.privileges[abbr.charAt(i)]) {
-          throw new Error(`Privilege '${abbr.charAt(i)}' does not exist`);
-        }
-        if (!this._privileges.includes(abbr.charAt(i))) {
-          return false;
-        }
-      }
-      return true;
-    });
+    throw new Error('Privilege must be an array, string or number');
   }
 
   /**
@@ -136,11 +131,25 @@ export default class URLPermission {
   }
 
   /**
-   * Returns the privileges which enable granting permissions.
+   * Returns array with all privilege names that enable granting new privileges.
    */
   grantPrivileges() {
-    const grantIdentifiers = Object.keys(this._config.grantPrivileges);
-    return this.privileges().filter(e => grantIdentifiers.includes(e));
+    let result = [];
+    Object.keys(this._config.grantPrivileges).forEach((privilege) => {
+      if (this.hasPrivilege(privilege)) {
+        result.push(privilege);
+      }
+    });
+    return result;
+  }
+
+  /**
+   * Returns bitmask describing which permissions may be granted.
+   */
+  grantsAllowed() {
+    return this.grantPrivileges().reduce((a, b) => {
+      return a | this._config.grantPrivileges[b];
+    }, 0);
   }
 
   /**
@@ -188,40 +197,33 @@ export default class URLPermission {
   }
 
   /**
-   * Parses an URL permission privilege string and returns an array with
-   * one-character privilege identifiers.
+   * Parses an URL permission privilege string and returns a bitmask.
    *
    * A single URL permission string is either one or more abbreviations, an alias
-   * or a comma-separated list of privilege names.
+   * or an integer.
    *
-   * For example, `ru`, `read`, `owner`, and `read,update` are valid.
+   * For example, `13`, `read`, `owner`, and `read,update` are valid.
    */
   _parsePrivileges(privilegeString) {
-    const result = [];
-    const privsInverted = _.invert(this._config.privileges);
-    for (const privilege of privilegeString.split(',')) {
-      if (privsInverted[privilege]) {
-        // Is privilege name, return its abbreviation
-        result.push(privsInverted[privilege]);
-      } else {
-        let abbr = privilege;
-
-        // An alias always overrides any abreviations
-        if (this._config.aliases[privilege]) {
-          abbr = this._config.aliases[privilege].join('');
-        }
-
-        // Parse abbreviations
-        for (let i = 0; i < abbr.length; i += 1) {
-          if (!this._config.privileges[abbr.charAt(i)]) {
-            throw new Error(`Privilege '${abbr.charAt(i)}' does not exist`);
-          }
-          result.push(abbr.charAt(i));
-        }
+    // When privilege is a number ensure it is in range
+    if (isNumeric(privilegeString)) {
+      const result = parseInt(privilegeString, 10);
+      const max = _.max(_.values(this._config.privileges));
+      if (result <= 0 || result > max) {
+        throw new Error(`Privilege must be a number between 1 and ${max}`);
       }
+      return result;
     }
 
-    return result;
+    // Add each permission to bitmask
+    let bitmask = 0;
+    privilegeString.split(',').forEach((privilege) => {
+      if (!this._config.privileges[privilege]) {
+        throw new Error(`Privilege '${privilege}' does not exist`);
+      }
+      bitmask = bitmask | this._config.privileges[privilege];
+    });
+    return bitmask;
   }
 
   /**
@@ -248,7 +250,8 @@ export default class URLPermission {
    * otherwise returns `false`.
    */
   matchPrivileges(userPrivileges) {
-    return _.every(userPrivileges, e => this.privileges().includes(e));
+    const ourPrivileges = this.privileges();
+    return (userPrivileges <= ourPrivileges) && ((ourPrivileges & userPrivileges) !== 0);
   }
 
   /**
@@ -309,10 +312,10 @@ export default class URLPermission {
    */
   mayGrant(permission, granteePermissions = []) {
     const newPermission = new URLPermission(permission);
-    if (this.grantPrivileges().length === 0 || !this.matchUrl(newPermission)) return false;
+    if (this.grantsAllowed() === 0 || !this.matchUrl(newPermission)) return false;
 
     // All other grantPrivileges must be covered by our grantPrivileges
-    return this._areLesserPrivileges(newPermission.grantPrivileges(), granteePermissions);
+    return this._areLesserPrivileges(newPermission, granteePermissions);
   }
 
   /**
@@ -326,22 +329,24 @@ export default class URLPermission {
    * Returns `true` when none of `granteePermissions` privileges are grant
    * privileges that are higher up in hierarchy.
    */
-  _areLesserPrivileges(grantPrivileges, granteePermissions) {
-    const allGrantPrivs = granteePermissions
-      .map(e => new URLPermission(e))
-      .filter(e => e.matchUrl(this))
-      .map(e => e.grantPrivileges())
-      .reduce((a, b) => a.concat(b), [])
-      .concat(grantPrivileges);
+  _areLesserPrivileges(newPermission, granteePermissions = []) {
+    // All privileges to be granted must be covered by our own bitmask
+    const allowedBitmask = this.grantsAllowed();
+    const toGrantBitmask = newPermission.privileges();
+    if (toGrantBitmask > allowedBitmask || toGrantBitmask & allowedBitmask === 0) {
+      return false;
+    }
 
-    if (allGrantPrivs.length > 0) {
-      const allowedGrantPrivs = _.chain(this._config.grantPrivileges)
-        .pick(this.grantPrivileges())
-        .values()
-        .flatten()
-        .value();
-
-      if (_.difference(allGrantPrivs, allowedGrantPrivs).length > 0) {
+    // Any privileges that may be granted by grantee must be covered by grantor
+    if (granteePermissions.length > 0) {
+      const allGranteePrivs = granteePermissions
+        .map(e => new URLPermission(e))
+        .filter(e => e.matchUrl(this))
+        .map(e => e.grantPrivileges()) // Get bitmasks of grant privileges themselves, not what they grant!
+        .reduce((a, b) => a.concat(b), []) // flatten
+        .map(e => (e) ? this._config.privileges[e] : 0)
+        .reduce((a, b) => a | b, 0);
+      if (allGranteePrivs !== 0 && (allGranteePrivs > allowedBitmask || allowedBitmask & allGranteePrivs === 0)) {
         return false;
       }
     }
@@ -380,7 +385,7 @@ export default class URLPermission {
         result += `${key}=${params[key].join(',')}`;
       });
     }
-    result += `:${this.privileges().join('')}`;
+    result += `:${this.privileges()}`;
     return result;
   }
 }

@@ -1,40 +1,29 @@
 import _ from 'lodash';
 import config from './config';
+import { isNumeric } from './util';
 
 /**
  * Validates privilege string.
  *
- * A privilege string can contain any combination of privilege identifiers,
- * privilege names and aliases.
+ * A privilege string can contain any combination of privilege names and numbers.
  *
  * Example:
  * ```
  * validatePrivileges('crud,manage'); // true
- * validatePrivileges('owner,read'); // true
+ * validatePrivileges('5,read'); // true
  * validatePrivileges('invalid'); // false
  * ```
  */
 function validatePrivileges(privilegeString) {
   const settings = config();
   const privileges = privilegeString.split(',');
-  const aliases = Object.keys(settings.aliases);
-  const privilegeNames = _.values(settings.privileges);
-  const privilegeIdentifiers = Object.keys(settings.privileges);
+  const privilegeNames = Object.keys(settings.privileges);
+  const privilegeNumbers = _.values(settings.privileges);
 
   for (const privilege of privileges) {
-    if (privilege.length > 1) {
-      // Check if privilege is either an alias or privilege name
-      if (aliases.includes(privilege)) continue;
-      if (privilegeNames.includes(privilege)) continue;
-
-      // If not alias or privilege name the value must be a combination of
-      // privilege identifiers
-      for (let i = 0; i < privilege.length; i += 1) {
-        if (!privilegeIdentifiers.includes(privilege.charAt(i))) {
-          return false;
-        }
-      }
-    } else if (!privilegeIdentifiers.includes(privilege)) {
+    if (isNumeric(privilege)) {
+      if (!privilegeNumbers.includes(privilege)) return false;
+    } else if (!privilegeNames.includes(privilege)) {
       return false;
     }
   }

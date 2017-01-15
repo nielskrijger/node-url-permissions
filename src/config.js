@@ -1,47 +1,29 @@
 import _ from 'lodash';
+import { isNumeric } from './util';
 
 // Contains default global config
 const defaultConfig = {
   privileges: {
-    c: 'create',
-    r: 'read',
-    u: 'update',
-    d: 'delete',
-    s: 'super',
-    m: 'manage',
-  },
-  aliases: {
-    all: ['c', 'r', 'u', 'd'],
-    manager: ['c', 'r', 'u', 'd', 'm'],
-    owner: ['c', 'r', 'u', 'd', 's'],
+    read: 1,
+    create: 2,
+    update: 4,
+    delete: 8,
+    crud: 15,
+    manage: 16,
+    manager: 31,
+    own: 32,
+    owner: 63,
+    admin: 64,
+    administrator: 127,
   },
   grantPrivileges: {
-    m: ['c', 'r', 'u', 'd'],
-    s: ['c', 'r', 'u', 'd', 's', 'm'],
+    manage: 15, // crud
+    own: 63, // owner + all the rest
+    admin: 127, // admin
   },
 };
 
 const config = _.cloneDeep(defaultConfig);
-
-/**
- * Returns the one-character identifier of a privilege.
- *
- * Throws an error if privilege could not be found.
- */
-function privilege(priv) {
-  if (priv.length === 1) {
-    if (!config.privileges[priv]) {
-      throw new Error(`Privilege '${priv}' does not exist'`);
-    }
-    return priv;
-  }
-  const invertedPrivs = _.invert(config.privileges);
-  const key = invertedPrivs[priv];
-  if (!key) {
-    throw new Error(`Privilege '${priv}' does not exist'`);
-  }
-  return invertedPrivs[priv];
-}
 
 /**
  * Sets or retrieves privileges which allow granting permissions.
@@ -50,17 +32,14 @@ function grantPrivileges(newGrantPrivileges = null) {
   if (newGrantPrivileges === false) {
     config.grantPrivileges = _.cloneDeep(defaultConfig.grantPrivileges);
   } else if (newGrantPrivileges) {
-    const newConfig = {};
     Object.keys(newGrantPrivileges).forEach((key) => {
-      if (!_.isArray(newGrantPrivileges[key])) {
-        throw new Error(`Privilege '${key}' must contain an array`);
+      if (!isNumeric(newGrantPrivileges[key])) {
+        throw new Error(`Grant privilege '${key}' must specify a valid number`);
       }
-      const newKey = privilege(key);
-      newConfig[newKey] = newGrantPrivileges[key].map(elm => privilege(elm));
     });
 
     // If config is valid assign override existing config
-    config.grantPrivileges = newConfig;
+    config.grantPrivileges = _.cloneDeep(newGrantPrivileges);
   }
   return config.grantPrivileges;
 }
@@ -76,41 +55,13 @@ function privileges(newPrivileges = null) {
       throw new Error('Privileges must an object');
     }
     Object.keys(newPrivileges).forEach((key) => {
-      if (newPrivileges[key].length <= 1) {
-        throw new Error(`Privilege name '${newPrivileges[key]}' must be at least 2 characters`);
-      }
-      if (key.length > 1) {
-        throw new Error(`Privilege identifier '${key}' must be 1 character`);
+      if (!isNumeric(newPrivileges[key])) {
+        throw new Error(`Privilege identifier '${key}' must be a number`);
       }
     });
     config.privileges = _.cloneDeep(newPrivileges);
   }
   return config.privileges;
-}
-
-/**
- * Sets or retrieves global alias config.
- */
-function aliases(newAliases = null) {
-  if (newAliases === false) {
-    config.aliases = _.cloneDeep(defaultConfig.aliases);
-  } else if (newAliases) {
-    if (!_.isPlainObject(newAliases)) {
-      throw new Error('Aliases must an object');
-    }
-    Object.keys(newAliases).forEach((alias) => {
-      if (!_.isArray(newAliases[alias])) {
-        throw new Error(`Alias '${alias}' must contain an array`);
-      }
-      newAliases[alias].forEach((priv) => {
-        if (!config.privileges[priv]) {
-          throw new Error(`Alias '${alias}' contains unknown privilege identifier '${priv}'`);
-        }
-      });
-    });
-    config.aliases = _.cloneDeep(newAliases);
-  }
-  return config.aliases;
 }
 
 /**
@@ -121,11 +72,9 @@ function aliases(newAliases = null) {
 export default (options) => {
   if (options === false) {
     privileges(false);
-    aliases(false);
     grantPrivileges(false);
   } else if (options) {
     if (options.privileges) privileges(options.privileges);
-    if (options.aliases) aliases(options.aliases);
     if (options.grantPrivileges) grantPrivileges(options.grantPrivileges);
   }
   return config;

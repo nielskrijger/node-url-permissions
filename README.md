@@ -65,29 +65,26 @@ An URL Permission consists of three components:
     You can specify multiple parameters and values like so:
 
     ```
-    /articles?author=user-1,user-2&status=published:r
+    /articles?author=user-1,user-2&status=published:read
     ```
 
     ... which allows read access of published articles whose author is `user-1` or `user-2` (comma-separated values are evaluated as OR).
 
-3. **Privileges**. Privileges specify which operations are allowed on the resource. You can either specify these as a comma-separated set of names, a string of identifiers, an alias, or a combination thereof (e.g. `create,read,update,delete`, `crud` and `all` are equivalent). Privileges are fully customizable. The default are:
+3. **Privileges**. Privileges specify which operations are allowed on the resource. You can either specify these as a comma-separated set of names, a bitmask, or a combination thereof (e.g. `create,read,update,delete`, `15` and `crud` are equivalent). Privileges are fully customizable. The default are:
 
-    Identifier | Name      | Description
-    -----------|-----------|-----------------
-    `r`        | `read`    | View resource.
-    `c`        | `create`  | Create resource.
-    `u`        | `update`  | Update resource.
-    `d`        | `delete`  | Delete resource.
-    `m`        | `manage`  | Set permissions of users or groups without `manage` or `super` permission for the applicable resource.
-    `s`        | `super`   | Set permissions of all users and groups for the applicable resource.
-
-    In addition to the privileges above the following aliases exist:
-
-    Name      | Alias for | Description
-    ----------|-----------|-------------------
-    `all`     | `crud`    | Allows user to perform the most common operations on a resource apart from changing user or group permissions.
-    `manager` | `crudm`   | Allows user to perform CRUD operations and set permissions of users without `manager` or `owner` permissions.
-    `owner`   | `cruds`   | Allows all possible operations on resource.
+    Bitmask | Name            | Description
+    --------|-----------------|-----------------
+    `1`     | `read`          | View resource.
+    `2`     | `create`        | Create resource.
+    `4`     | `update`        | Update resource.
+    `8`     | `delete`        | Delete resource.
+    `15`    | `crud`          | All of the above.
+    `16`    | `manage`        | Set permissions of subject without `manage` or `super` privilege.
+    `31`    | `manager`       | All of the above.
+    `32`    | `own`           | Set permissions of subjects without `super` privilege + allow ownership transfer.
+    `63`    | `owner`         | All of the above.
+    `64`    | `admin`         | Enables special administrative actions and setting permissions of everyone.
+    `127`   | `administrator` | All of the above.
 
 # permission(perm)
 
@@ -103,8 +100,8 @@ import { permission } from 'url-permissions';
 // Basic examples
 permission('/articles:read').allows('/articles:read'); // true
 permission('/articles:read,update').allows('/articles:read'); // true
-permission('/articles:all').allows('/articles:read,update'); // false
-permission('/articles:read,update').allows('/articles:all'); // false
+permission('/articles:crud').allows('/articles:read,update'); // false
+permission('/articles:read,update').allows('/articles:crud'); // false
 permission('/articles:read').allows(['/articles:read', '/articles:update']); // false
 permission('/articles/article-1:read').allows('/articles:read'); // false
 permission('/articles:read').allows('/articles/article-1:read'); // false
@@ -127,9 +124,9 @@ permission('/articles/*:read').allows('/articles/article-1/comments:read'); // f
 permission('/articles/**:read').allows('/articles/article-1/comments:read'); // true
 
 // Privilege aliases
-permission('/articles:crud').allows('/articles:all'); // true
-permission('/articles:all').allows('/articles:read'); // false
-permission('/articles:read').allows('/articles:all'); // false
+permission('/articles:crud').allows('/articles:crud'); // true
+permission('/articles:crud').allows('/articles:read'); // false
+permission('/articles:read').allows('/articles:crud'); // false
 ```
 
 ## path([ path ])
@@ -137,7 +134,7 @@ permission('/articles:read').allows('/articles:all'); // false
 Gets or sets the permission path.
 
 ```js
-const perm = permission('/articles:r');
+const perm = permission('/articles:read');
 
 perm.path(); // "/articles"
 perm.path('/users');
@@ -149,7 +146,7 @@ perm.path(); // "/users"
 Gets or sets the permission parameters.
 
 ```js
-const perm = permission('/articles?attr1=test:r');
+const perm = permission('/articles?attr1=test:read');
 
 perm.parameters(); // { attr1: 'test' }
 perm.parameters({ attr1: 'test2', attr2: 'test3' });
@@ -158,34 +155,36 @@ perm.parameters(); // { attr1: 'test2', attr2: 'test3' }
 
 ## privileges([ privileges ])
 
-Gets or sets the permission privileges.
+Sets or returns priviliges
 
-`privileges` can be either a string or an array of privileges. Privileges are identified either by a one-character identifier, a privilege name or an alias.
+`privileges` can be either an array or comma-separated string with privilege names or their bitmasks. For example, `13`, `read`, `owner`, and `read,update,3` are valid.
+
+When `privileges` are not defined method returns the bitmask of all privileges.
 
 ```js
-const perm = permission('/articles:r');
+const perm = permission('/articles:read');
 
-perm.privileges(); // ['r']
-perm.privileges('all,m');
-perm.privileges(); // ['c', 'r', 'u', 'd', 'm']
-perm.privileges(['all', 'm', 'super']);
-perm.privileges(); // ['c', 'r', 'u', 'd', 'm', 's']
+perm.privileges(); // 1
+perm.privileges('crud,own');
+perm.privileges(); // 15 | 32 = 47
+perm.privileges(['crud', 'manage', 'owner']);
+perm.privileges(); // 15 | 16 | 63 = 63
 ```
 
 ## hasPrivilege(privilege)
 
 Return `true` when permission has specified privilege(s).
 
-`privileges` can be either a string or an array of privileges. Privileges are identified either by a one-character identifier, a privilege name or an alias.
+`privileges` can be either an array or comma-separated string with privilege names or their bitmasks.
 
 ```js
 const perm = permission('/articles:crud');
 
-perm.hasPrivilege('r'); // true
-perm.hasPrivilege(['read', 'c', 'u']); // true
-perm.hasPrivilege('all'); // true
-perm.hasPrivilege('all,read,c'); // true
-perm.hasPrivilege('super'); // false
+perm.hasPrivilege('read'); // true
+perm.hasPrivilege(['read', 'create', 'update']); // true
+perm.hasPrivilege('crud'); // true
+perm.hasPrivilege('crud,read,create'); // true
+perm.hasPrivilege('admin'); // false
 perm.hasPrivilege('unknown'); // throws error
 ```
 
@@ -195,12 +194,12 @@ Alias of `hasPrivilege()`.
 
 ## grantPrivileges()
 
-Gets the privileges which allow granting permissions.
+Gets array with privilege names that enable granting privileges. Returns empty array when none of permission's privileges are grant privileges.
 
 ```js
-const perm = permission('/articles:read,manage,super');
+const perm = permission('/articles:read,manage,64');
 
-perm.grantPrivileges(); // ['m', 's']
+perm.grantPrivileges(); // ['manage', 'admin']
 ```
 
 ## mayGrant(newPermission [, granteePermissions])
@@ -224,12 +223,12 @@ import { permission } from 'url-permissions';
 
 permission('/articles:manage').mayGrant('/articles:read', []); // true
 permission('/articles:manage').mayGrant('/articles:read', ['/articles:delete']); // true
-permission('/articles:manage').mayGrant('/articles:read', ['/articles:super']); // true
+permission('/articles:manage').mayGrant('/articles:read', ['/articles:admin']); // true
 permission('/articles:manage').mayGrant('/articles:manage', ['/articles:manage']); // false
-permission('/articles:manage').mayGrant('/articles:read', ['/unrelated:super']); // true
+permission('/articles:manage').mayGrant('/articles:read', ['/unrelated:admin']); // true
 
-permission('/articles:super').mayGrant('/articles/article-1:read', ['/articles:manage']); // true
-permission('/articles:super').mayGrant('/articles/article-1:read', ['/articles:super']); // true
+permission('/articles:admin').mayGrant('/articles/article-1:read', ['/articles:manage']); // true
+permission('/articles:admin').mayGrant('/articles/article-1:read', ['/articles:admin']); // true
 ```
 
 ## mayRevoke(permission [, granteePermissions])
@@ -242,40 +241,40 @@ Returns `true` if permission allows revoking `permission` to grantee.
 import { permission } from 'url-permissions';
 
 permission('/articles:manage').mayRevoke('/articles:read', []); // true
-permission('/articles:manage').mayRevoke('/articles:read', ['/articles:super']); // false
+permission('/articles:manage').mayRevoke('/articles:read', ['/articles:admin']); // false
 permission('/articles:manage').mayRevoke('/articles:manage', ['/articles:manage']); // false
 
-permission('/articles:super').mayRevoke('/articles/article-1:read', ['/articles:manage']); // true
-permission('/articles:super').mayRevoke('/articles/article-1:read', ['/articles:super']); // true
+permission('/articles:admin').mayRevoke('/articles/article-1:read', ['/articles:manage']); // true
+permission('/articles:admin').mayRevoke('/articles/article-1:read', ['/articles:admin']); // true
 ```
 
 ## toObject()
 
-Returns an object representation of an URL permission containing three properties: `url`, `attributes` and `actions`.
+Returns an object representation of an URL permission containing three properties: `url`, `attributes` and `privileges`.
 
 ```js
 import { permission } from 'url-permissions';
 
-permission('/articles/*?author=user-1,user-2&flag=true:all').toObject()
+permission('/articles/*?author=user-1,user-2&flag=true:crud').toObject()
 // {
 //   path: '/articles/*',
 //   attributes: {
 //     author: ['user-1', 'user-2'],
 //     flag: ['true'],
 //   },
-//   privileges: ['r', 'c', 'u', 'd'],
+//   privileges: 15,
 // }
 ```
 
 ## toString()
 
-Returns a permission string of an URL Permission. Privileges are always represented by privilege identifiers.
+Returns a string representation of an URL Permission. Privileges are always represented by their bitmask.
 
 ```js
 import { permission } from 'url-permissions';
 
-permission('/articles/*?author=user-1:all').toString()
-// '/articles/*?author=user-1:crud'
+permission('/articles/*?author=user-1:crud').toString()
+// '/articles/*?author=user-1:15'
 ```
 
 ## clone()
@@ -283,7 +282,7 @@ permission('/articles/*?author=user-1:all').toString()
 Returns a clone of the permission.
 
 ```js
-const a = permission('/articles:r');
+const a = permission('/articles:read');
 const b = a.clone();
 a.privileges(['u']);
 b.privileges(); // ['r']
@@ -292,7 +291,7 @@ b.privileges(); // ['r']
 Alternatively you can do this:
 
 ```js
-const a = permission('/articles:r');
+const a = permission('/articles:read');
 const b = permission(a); // Clone a
 ```
 
@@ -303,10 +302,10 @@ Static method to checks if url permission string is valid.
 ```js
 import { permission } from 'url-permissions';
 
-permission.validate('/articles?author=1,2:all,m'); // true
+permission.validate('/articles?author=1,2:crud,manage'); // true
 permission.validate('/articles?author=1,2'); // false, no privileges
-permission.validate('/articles:unknown'); // false, unknown privilege/alias
-permission.validate('?author=user-1:c'); // false, no path
+permission.validate('/articles:unknown'); // false, unknown privilege
+permission.validate('?author=user-1:create'); // false, no path
 ```
 
 ## config(options)
@@ -318,28 +317,29 @@ import { permission } from 'url-permissions';
 
 permission.config({
   privileges: {
-    c: 'create',
-    r: 'read',
-    u: 'update',
-    d: 'delete',
-    s: 'super',
-    m: 'manage',
-  },
-  aliases: {
-    all: ['c', 'r', 'u', 'd'],
-    manager: ['c', 'r', 'u', 'd', 'm'],
-    owner: ['c', 'r', 'u', 'd', 's'],
+    read: 1,
+    create: 2,
+    update: 4,
+    delete: 8,
+    crud: 15,
+    manage: 16,
+    manager: 31,
+    own: 32,
+    owner: 63,
+    super: 64,
+    admin: 127,
   },
   grantPrivileges: {
-    manage: ['c', 'r', 'u', 'd'],
-    super: ['c', 'r', 'u', 'd', 's', 'm'],
+    manage: 15, // crud
+    owner: 63, // owner + all the rest
+    super: 127, // admin
   },
 });
 ```
 
 ### Grant privileges
 
-The config option `grantPrivileges` must be an object of key-value pairs where each key is a one-character privilege identifier and each value an array of privileges it is allowed to grant.
+The config option `grantPrivileges` must be an object of key-value pairs where each key is a privilege name and each value a bitmask specifying which privileges it is allowed to grant.
 
 Anyone with grant privileges is allowed to grant its privileges to grantees without any grant privileges. However, if a grantee does have grant privileges its grant privileges must be covered by those of the grantor.
 
@@ -349,16 +349,23 @@ Example:
 import { permission } from 'url-permissions';
 
 permission.config({
+  privileges: {
+    a: 1,
+    x: 2,
+    y: 4,
+    z: 8,
+  },
   grantPrivileges: {
-    x: ['a'],
-    y: ['a', 'x'],
-    z: ['a', 'z'],
+    x: 1,
+    y: 3, // 1 | 2 => a and x are allowed
+    z: 9, // 1 | 8 => a and z are allowed
   },
 });
 
 permission('/articles:x').mayGrant('/articles:a'); // true
 permission('/articles:x').mayGrant('/articles:a', ['/articles:x']); // false
 permission('/articles:y').mayGrant('/articles:a', ['/articles:x']); // true
+permission('/articles:y').mayGrant('/articles:x', ['/articles:x']); // true
 permission('/articles:y').mayGrant('/articles:a', ['/articles:y']); // false
 permission('/articles:z').mayGrant('/articles:a', ['/articles:z']); // true
 ```
@@ -380,39 +387,25 @@ This method intelligently handles combination and products of parameter values a
 ```js
 import { permissions } from 'url-permissions';
 
-permissions('/articles:r', '/articles:u').allows('/articles:ru'); // true
-permissions('/articles/*:r', '/articles/*:u').allows('/articles/article-1:ru'); // true
-permissions('/articles?author=user1:r', '/articles?author=user2:r').allows('/articles?author=user1,user2:r'); // true
-permissions('/articles?author=user1:r', '/articles?author=user2:u').allows('/articles?author=user1,user2:ru'); // false
+permissions('/articles:read', '/articles:update').allows('/articles:ru'); // true
+permissions('/articles/*:read', '/articles/*:update').allows('/articles/article-1:ru'); // true
+permissions('/articles?author=user1:read', '/articles?author=user2:read')
+  .allows('/articles?author=user1,user2:read'); // true
+permissions('/articles?author=user1:read', '/articles?author=user2:update')
+  .allows('/articles?author=user1,user2:read,update'); // false
 ```
 
 When using comma-separated parameter values each value should be considered a separate permission that must be allowed:
 
 ```js
-permissions('/articles?author=user-1:r', '/articles?author=user-2:r')
-  .allows('/articles?author=user-1,user-2&status=published:r'); // true
+permissions('/articles?author=user-1:read', '/articles?author=user-2:read')
+  .allows('/articles?author=user-1,user-2&status=published:read'); // true
 
-// ... which is equivalent to:
-permissions('/articles?author=user-1:r', '/articles?author=user-2:r')
+// ... is equivalent to:
+permissions('/articles?author=user-1:read', '/articles?author=user-2:read')
   .allows([
-    '/articles?author=user-1&status=published:r',
-    '/articles?author=user-2&status=published:r',
-  ]);
-```
-
-Similarly, multiple parameters and multiple values in a single permission are equivalent to the combination of all possible parameter values:
-
-```js
-permissions('/articles?author=user-1:r', '/articles?author=user-2&status=published:r')
-  .allows('/articles?author=user-1,user-2&status=published,draft:r'); // false
-
-// ... which is equivalent to:
-permissions('/articles?author=user-1:r', '/articles?author=user-2&status=published:r')
-  .allows([
-    '/articles?author=user-1&status=published:r',
-    '/articles?author=user-1&status=draft:r',
-    '/articles?author=user-2&status=published:r',
-    '/articles?author=user-2&status=draft:r', // This does not match
+    '/articles?author=user-1&status=published:read',
+    '/articles?author=user-2&status=published:read',
   ]);
 ```
 
@@ -425,7 +418,7 @@ For a better understanding of how granting work, see `permission().mayGrant(...)
 ```js
 import { permissions } from 'url-permissions';
 
-permission('/articles:r', '/articles:m').mayGrant('/articles:read'); // true
+permission('/articles:read', '/articles:m').mayGrant('/articles:read'); // true
 
 permissions('/articles?author=user-1:owner', '/articles?author=user-2:owner')
   .mayGrant('/articles?author=user-1,user-2:read', ['/articles:read']); // true

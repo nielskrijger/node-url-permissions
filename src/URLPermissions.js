@@ -29,7 +29,7 @@ export default class URLPermissions {
    *
    * `permissions` can be either permission strings or an URLPermission object.
    *
-   * Throws an error when permission string is invalid.
+   * Throws an error when any permission is invalid.
    */
   allows(...perms) {
     // Transform each permission string to an object.
@@ -42,13 +42,13 @@ export default class URLPermissions {
     const ourPermissions = this.permissions();
     return _.every(permissions, (permission) => {
       let i = 0;
-      while (permission.privileges().length > 0 && i < ourPermissions.length) {
+      while (permission.privileges() > 0 && i < ourPermissions.length) {
         if (ourPermissions[i].matchUrl(permission)) {
-          permission.privileges(_.difference(permission.privileges(), ourPermissions[i].privileges()));
+          permission.privileges(permission.privileges() & ~ourPermissions[i].privileges()); // Remove flag
         }
         i++;
       }
-      return permission.privileges().length === 0;
+      return permission.privileges() === 0;
     });
   }
 
@@ -73,9 +73,7 @@ export default class URLPermissions {
     * `mayRevoke`. Specify `functionName` either `mayGrant` or `mayRevoke`.
     */
    _mayGrantOrRevoke(functionName, newPermission, granteePermissions = []) {
-     const newPerms = this._unwindParameters(newPermission)
-      .map(this._unwindPrivileges)
-      .reduce((a, b) => a.concat(b), []);
+     const newPerms = _.flatten(this._unwindParameters(newPermission));
      const ourPerms = this.permissions();
      return _.every(newPerms, (newPerm) => {
        return _.some(ourPerms, (ourPerm) => ourPerm[functionName](newPerm, granteePermissions));
@@ -87,12 +85,12 @@ export default class URLPermissions {
    *
    * For example:
    * ```
-   * _unwindPermission('/articles?var1=foo1,foo2&var2=foo3,foo4:ru');
+   * _unwindPermission('/articles?var1=foo1,foo2&var2=foo3,foo4:read,update');
    * // [
-   * //   "/articles?var1=foo1&var2=foo3:ru",
-   * //   "/articles?var1=foo1&var2=foo4:ru",
-   * //   "/articles?var1=foo2&var2=foo3:ru",
-   * //   "/articles?var1=foo2&var2=foo4:ru",
+   * //   "/articles?var1=foo1&var2=foo3:read,update",
+   * //   "/articles?var1=foo1&var2=foo4:read,update",
+   * //   "/articles?var1=foo2&var2=foo3:read,update",
+   * //   "/articles?var1=foo2&var2=foo4:read,update",
    * // ]
    * ```
    */
@@ -124,23 +122,5 @@ export default class URLPermissions {
     return unwind(Object.keys(params), 0).map((unwindedParams) => {
       return perm.clone().parameters(unwindedParams);
     });
-  }
-
-  /**
-   * Generates a new permission for each privilege.
-   *
-   * For example:
-   * ```
-   * _unwindPermission('/articles:all');
-   * // [
-   * //   "/articles:c",
-   * //   "/articles:r",
-   * //   "/articles:u",
-   * //   "/articles:d",
-   * // ]
-   * ```
-   */
-  _unwindPrivileges(perm) {
-    return perm.privileges().map(e => perm.clone().privileges(e));
   }
 }
