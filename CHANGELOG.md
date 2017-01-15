@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+# [2.0.0] - 2016-01-15
+### Added
+- Use bitmasks to specify which privileges are allowed
+- Added `administrator` privilege with bitmask for all other privileges
+- Added `own` privilege enabling `owner`-unique operations
+
+### Changed
+- Changed aliases to normal privileges
+- Renamed `all` alias to `crud` and made it a normal privilege
+- Removed privilege (one-character) identifiers
+- Renamed `super` privilege to `admin`
+
 ## [1.1.0] - 2016-01-07
 ### Added
 - `permission().hasPrivilege()` method
